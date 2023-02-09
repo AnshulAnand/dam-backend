@@ -1,8 +1,9 @@
+import config from 'config'
 import mongoose from 'mongoose'
 import logger from './logger'
 
 const connectDB = async () => {
-  const MONGO_URI = process.env['MONGO_URI']! // "!" tells the compiler that the value won't be undefined
+  const MONGO_URI = config.get<string>('mongoURI')
   try {
     mongoose.set('strictQuery', false)
     const conn = await mongoose.connect(MONGO_URI)
