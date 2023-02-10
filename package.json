@@ -7,7 +7,9 @@
     "format": "prettier --write .",
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "sass-dev": "sass --watch --update --style=expanded public/sass:public/css",
+    "sass-prod": "sass --no-source-map --style=compressed public/sass:public/css"
   },
   "author": "Anshul Anand",
   "license": "MIT",
@@ -26,6 +28,7 @@
     "eslint-plugin-promise": "^6.1.1",
     "nodemon": "^2.0.20",
     "prettier": "^2.8.3",
+    "sass": "^1.58.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   },
