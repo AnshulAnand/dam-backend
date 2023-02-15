@@ -1,4 +1,5 @@
 @import '../abstracts/colors';
+@import './typography';
 
 // Base styles
 * {
@@ -11,8 +12,8 @@ html {
   font-size: 62.5%;
 
   body {
-    font-family: var(--font-family);
-    font-size: var(--font-size-sm);
+    font-family: map-get($typography, 'font-family');
+    font-size: map-get($typography, 'font-size-sm');
     color: map-get($colors, 'light-color-alt');
     background-color: map-get($colors, 'primary-background-color');
     letter-spacing: 1px;
@@ -40,7 +41,7 @@ html {
     }
 
     i {
-      font-size: var(--font-size-md);
+      font-size: map-get($typography, 'font-size-md');
     }
   }
 }
