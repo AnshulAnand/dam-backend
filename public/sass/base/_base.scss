@@ -12,10 +12,10 @@ html {
   font-size: 62.5%;
 
   body {
-    font-family: map-get($typography, 'font-family');
-    font-size: map-get($typography, 'font-size-sm');
-    color: map-get($colors, 'light-color-alt');
-    background-color: map-get($colors, 'primary-background-color');
+    font-family: var(--font-family);
+    font-size: var(--font-size-sm);
+    color: var(--light-color-alt);
+    background-color: var(--primary-background-color);
     letter-spacing: 1px;
     transition: background-color 0.25s, color 0.25s;
 
@@ -41,7 +41,7 @@ html {
     }
 
     i {
-      font-size: map-get($typography, 'font-size-md');
+      font-size: var(--font-size-md);
     }
   }
 }
