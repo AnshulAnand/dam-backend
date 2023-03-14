@@ -3,6 +3,7 @@ README.md
 LICENSE
 package.json
 package-lock.json
+tsconfig.json
 .eslintrc.json
 .prettierrc
 .gitignore

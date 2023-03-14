@@ -1,7 +1,6 @@
 import dotenv from 'dotenv'
 dotenv.config()
 import config from 'config'
-import path from 'path'
 import express, { Request, Response } from 'express'
 import logger from './utils/logger'
 import connectDB from './utils/connect'
@@ -9,18 +8,15 @@ import ArticleModel from './models/article.model'
 
 const app = express()
 
-app.set('view engine', 'ejs')
-app.use(express.static(path.join(__dirname, '..', 'public')))
-
 app.get('/', (req: Request, res: Response) => {
-  res.render('home')
+  res.json('home')
 })
 
 app.get('/:id', async (req: Request, res: Response) => {
   const { id } = req.params
   const data = await ArticleModel.findById(id)
   const article = data !== null ? data : ''
-  res.render('articles/index', { article })
+  res.json(article)
 })
 
 const PORT = config.get<number>('port')

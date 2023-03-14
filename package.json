@@ -1,5 +1,5 @@
 {
-  "name": "project-dam",
+  "name": "dam",
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
@@ -7,35 +7,23 @@
     "format": "prettier --write .",
     "start": "node dist/server.js",
     "dev": "nodemon src/server.ts",
-    "build": "tsc -p .",
-    "sass-dev": "sass --watch --update --style=expanded public/sass:public/css",
-    "sass-prod": "sass --no-source-map --style=compressed public/sass:public/css"
+    "build": "tsc -p ."
   },
   "author": "Anshul Anand",
   "license": "MIT",
   "devDependencies": {
     "@types/config": "^3.3.0",
-    "@types/ejs": "^3.1.1",
     "@types/express": "^4.17.17",
     "@types/node": "^18.11.19",
-    "@typescript-eslint/eslint-plugin": "^5.50.0",
     "dotenv": "^16.0.3",
-    "eslint": "^8.33.0",
-    "eslint-config-prettier": "^8.6.0",
-    "eslint-config-standard-with-typescript": "^34.0.0",
-    "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-n": "^15.6.1",
-    "eslint-plugin-promise": "^6.1.1",
     "nodemon": "^2.0.20",
     "prettier": "^2.8.3",
-    "sass": "^1.58.0",
     "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   },
   "dependencies": {
     "config": "^3.3.9",
     "dayjs": "^1.11.7",
-    "ejs": "^3.1.8",
     "express": "^4.18.2",
     "mongoose": "^6.9.0",
     "pino": "^8.8.0",
