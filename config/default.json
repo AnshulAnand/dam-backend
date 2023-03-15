@@ -1,4 +1,5 @@
 {
   "port": 1337,
-  "mongoURI": ""
+  "mongoURI": "",
+  "saltWorkfactor": 10
 }
