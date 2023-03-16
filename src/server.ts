@@ -7,9 +7,12 @@ import logger from './utils/logger'
 import connectDB from './utils/connect'
 import ArticleModel from './models/article.model'
 
+import deserializeUser from './middleware/deserializeUser'
+
 const app = express()
 
 app.use(express.json())
+app.use(deserializeUser)
 
 app.get('/', (req: Request, res: Response) => {
   res.json('home')
