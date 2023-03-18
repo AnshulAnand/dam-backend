@@ -1,49 +1,49 @@
-import { object, number, string, TypeOf } from "zod";
+import { object, number, string, TypeOf } from 'zod'
 
 const payload = {
   body: object({
     title: string({
-      required_error: "Title is required",
+      required_error: 'Title is required'
     }),
     url: string({
-      required_error: "URL is required",
+      required_error: 'URL is required'
     }),
     body: string({
-      required_error: "Body is required",
+      required_error: 'Body is required'
     }),
     image: string({
-      required_error: "Image is required",
-    }),
-  }),
-};
+      required_error: 'Image is required'
+    })
+  })
+}
 
 // articleId and url are same
 const params = {
   params: object({
     articleId: string({
-      required_error: "articleId is required",
-    }),
-  }),
-};
+      required_error: 'articleId is required'
+    })
+  })
+}
 
 export const createArticleSchema = object({
-  ...payload,
-});
+  ...payload
+})
 
 export const updateArticleSchema = object({
   ...payload,
-  ...params,
-});
+  ...params
+})
 
 export const deleteArticleSchema = object({
-  ...params,
-});
+  ...params
+})
 
 export const getArticleSchema = object({
-  ...params,
-});
+  ...params
+})
 
-export type CreateArticleInput = TypeOf<typeof createArticleSchema>;
-export type UpdateArticleInput = TypeOf<typeof updateArticleSchema>;
-export type ReadArticleInput = TypeOf<typeof getArticleSchema>;
-export type DeleteArticleInput = TypeOf<typeof deleteArticleSchema>;
+export type CreateArticleInput = TypeOf<typeof createArticleSchema>
+export type UpdateArticleInput = TypeOf<typeof updateArticleSchema>
+export type ReadArticleInput = TypeOf<typeof getArticleSchema>
+export type DeleteArticleInput = TypeOf<typeof deleteArticleSchema>
