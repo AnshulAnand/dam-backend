@@ -1,9 +1,0 @@
-{
-  "port": 1337,
-  "mongoURI": "",
-  "saltWorkfactor": 10,
-  "accessTokenTtl": "15m",
-  "refreshTokenTtl": "1y",
-  "privateKey": "",
-  "publicKey": "-----BEGIN PUBLIC KEY-----MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALQT5JC5CSRgcmjm89jQdk5yYKGQobO4o0aWgReBCCtW5YHsvT1XM+qTiodV15ifNJFtSm3DallOub2lwvBoKRcCAwEAAQ==-----END PUBLIC KEY-----"
-}
