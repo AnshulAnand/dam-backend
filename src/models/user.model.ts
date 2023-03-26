@@ -1,51 +1,36 @@
-import mongoose from 'mongoose'
-import bcrypt from 'bcrypt'
-import config from 'config'
+import dayjs from 'dayjs'
+import { Schema, model, Document } from 'mongoose'
 
-export interface UserDocument extends mongoose.Document {
-  email: string
+export interface UserDocument extends Document {
   name: string
   username: string
+  email: string
   password: string
-  createdAt: Date
-  updatedAt: Date
-  comparePassword(candidatePassword: string): Promise<boolean>
+  date: string
+  country?: string
+  bio?: string
+  link?: string
+  image?: string
+  views?: number
 }
 
-const userSchema = new mongoose.Schema(
-  {
-    email: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true }
+const userSchema = new Schema<UserDocument>({
+  name: { type: String, required: true },
+  username: { type: String, required: true, unique: true },
+  email: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  date: {
+    type: String,
+    default: dayjs(new Date()).format('DD/MMMM/YYYY'),
+    required: true
   },
-  { timestamps: true }
-)
-
-userSchema.pre('save', async function (next) {
-  let user = this as UserDocument
-
-  if (!user.isModified('password')) return next()
-
-  const salt = await bcrypt.genSalt(config.get<number>('saltWorkFactor'))
-
-  const hash = bcrypt.hashSync(user.password, salt)
-
-  user.password = hash
-
-  return next()
+  country: { type: String, default: '' },
+  bio: { type: String, default: '' },
+  link: { type: String, default: '' },
+  image: { type: String, default: '' },
+  views: { type: Number, default: 0 }
 })
 
-userSchema.methods.comparePassword = async function (
-  candidatePassword: string
-): Promise<boolean> {
-  const user = this as UserDocument
-
-  return bcrypt
-    .compare(candidatePassword, user.password)
-    .catch((error) => false)
-}
-
-const UserModel = mongoose.model<UserDocument>('User', userSchema)
+const UserModel = model<UserDocument>('User', userSchema)
 
 export default UserModel

@@ -1,32 +1,33 @@
-import dotenv from 'dotenv'
-dotenv.config()
+if (process.env.NODE_ENV !== 'production') require('dotenv').config()
 import config from 'config'
-import express from 'express'
 import logger from './utils/logger'
 import connectDB from './utils/connect'
+import errorHandler from './utils/errorHandler'
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
+import corsOptions from './config/corsOptions'
+import express from 'express'
 
-import deserializeUser from './middleware/deserializeUser'
+connectDB() // connect to database
 
 const app = express()
 
+app.use(cors(corsOptions))
 app.use(express.json())
-app.use(deserializeUser)
+app.use(cookieParser())
 
 // importing routes
 import healthcheck from './routes/health-check.routes'
-import articles from './routes/articles.routes'
-import users from './routes/users.routes'
-import sessions from './routes/sessions.routes'
+import userRoutes from './routes/user.routes'
+import articleRoutes from './routes/article.routes'
 
 // using routes
 app.use('/health-check', healthcheck)
-app.use('/articles', articles)
-app.use('/sessions', sessions)
-app.use('/users', users)
+app.use('/users', userRoutes)
+app.use('/articles', articleRoutes)
 
 const PORT = config.get<number>('port')
 
-app.listen(PORT, async () => {
-  logger.info(`Server running on port ${PORT}`)
-  await connectDB()
-})
+app.use(errorHandler)
+
+app.listen(PORT, () => logger.info(`Server running on port ${PORT}`))

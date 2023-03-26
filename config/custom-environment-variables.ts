@@ -1,4 +1,3 @@
 export default {
-  mongoURI: 'MONGO_URI',
-  privateKey: 'PRIVATE_KEY'
-};
+  mongoURI: 'MONGO_URI'
+}
