@@ -3,6 +3,9 @@ import UserModel from '../models/user.model'
 import asyncHandler from 'express-async-handler'
 import { CreateUserInput } from '../schema/user.schema'
 import bcrypt from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import config from 'config'
+import lodash from 'lodash'
 
 // @desc   Get all users
 // @route  GET /users
@@ -16,10 +19,10 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   }
 })
 
-// @desc   Create new user
-// @route  POST /users
+// @desc   Create and register new user
+// @route  POST /register
 // @access Private
-const createUser = asyncHandler(
+const registerUser = asyncHandler(
   async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
     const { name, username, email, password } = req.body
 
@@ -31,7 +34,7 @@ const createUser = asyncHandler(
     const duplicate = await UserModel.findOne({ username }).lean().exec()
 
     if (duplicate) {
-      res.status(409).json({ message: 'Duplicate username' })
+      res.status(409).json({ message: 'Username already exists' })
       return
     }
 
@@ -49,6 +52,63 @@ const createUser = asyncHandler(
       res
         .status(400)
         .json({ message: 'Invalid user data received, could not create user' })
+    }
+  }
+)
+
+// @desc   Login user
+// @route  POST /login
+// @access Private
+const loginUser = asyncHandler(
+  async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
+    const { email, password } = req.body
+
+    if (!password || !email) {
+      res.status(400).json({ message: 'All fields are required' })
+      return
+    }
+
+    const match = await UserModel.findOne({ email }).select('-password').lean()
+    console.log(match)
+
+    if (match) {
+      const accessToken = jwt.sign(
+        match,
+        config.get<string>('accessTokenSecret'),
+        { expiresIn: '30s' }
+      )
+
+      const refreshToken = jwt.sign(
+        match,
+        config.get<string>('refreshTokenSecret'),
+        { expiresIn: '1d' }
+      )
+
+      const user = await UserModel.findOne({ email }).exec()
+      user.refreshToken = refreshToken
+      await user.save()
+
+      res.cookie('jwt', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
+      })
+      res.json(accessToken)
+    } else {
+      res.status(401).json({ message: 'No user found' })
+    }
+  }
+)
+
+// @desc   Logout user
+// @route  POST /logout
+// @access Private
+const logoutUser = asyncHandler(
+  async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
+    const { username } = req.body
+
+    if (!username) {
+      res.status(400).json({ message: 'All fields are required' })
+      return
     }
   }
 )
@@ -122,7 +182,9 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
 export default {
   getAllUsers,
-  createUser,
+  registerUser,
+  loginUser,
+  logoutUser,
   updateUser,
   deleteUser
 }
