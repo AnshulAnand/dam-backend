@@ -1,4 +1,6 @@
 export default {
   port: 1337,
-  mongoURI: ''
+  mongoURI: '',
+  accessTokenSecret: '',
+  refreshTokenSecret: ''
 }
