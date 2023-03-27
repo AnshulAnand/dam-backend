@@ -6,6 +6,7 @@ export interface UserDocument extends Document {
   username: string
   email: string
   password: string
+  refreshToken: string
   date: string
   country?: string
   bio?: string
@@ -19,6 +20,7 @@ const userSchema = new Schema<UserDocument>({
   username: { type: String, required: true, unique: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  refreshToken: { type: String, required: true },
   date: {
     type: String,
     default: dayjs(new Date()).format('DD/MMMM/YYYY'),
