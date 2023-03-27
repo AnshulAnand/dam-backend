@@ -5,7 +5,6 @@ import { CreateUserInput } from '../schema/user.schema'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from 'config'
-import lodash from 'lodash'
 
 // @desc   Get all users
 // @route  GET /users
