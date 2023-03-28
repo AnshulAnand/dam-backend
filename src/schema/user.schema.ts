@@ -18,4 +18,24 @@ export const createUserSchema = object({
   })
 })
 
+export const loginUserSchema = object({
+  body: object({
+    password: string({ required_error: 'Password is required' }).min(
+      6,
+      'Password too short- should be 6 characters minimum'
+    ),
+    email: string({ required_error: 'Email is required' }).email(
+      'Invalid e-mail'
+    )
+  })
+})
+
+export const logoutUserSchema = object({
+  body: object({
+    username: string({ required_error: 'Username is required' })
+  })
+})
+
 export type CreateUserInput = TypeOf<typeof createUserSchema>
+export type LoginUserInput = TypeOf<typeof loginUserSchema>
+export type LogoutUserInput = TypeOf<typeof logoutUserSchema>
