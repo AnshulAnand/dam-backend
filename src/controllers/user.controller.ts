@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import UserModel from '../models/user.model'
 import asyncHandler from 'express-async-handler'
-import { CreateUserInput } from '../schema/user.schema'
+import { CreateUserInput, LoginUserInput, LogoutUserInput } from '../schema/user.schema'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from 'config'
@@ -11,10 +11,26 @@ import config from 'config'
 // @access Private
 const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const users = await UserModel.find().select('-password').lean()
+
   if (!users?.length) {
     res.status(400).json({ message: 'No Users Found' })
   } else {
     res.json(users)
+  }
+})
+
+// @desc   Get user
+// @route  GET /users/:userId
+// @access Private
+const getUser = asyncHandler(async (req: Request, res: Response) => {
+  const username = req.params.userId
+
+  const user = await UserModel.findOne({ username }).select('-password').lean()
+
+  if (!user) {
+    res.status(400).json({ message: 'No User Found' })
+  } else {
+    res.json(user)
   }
 })
 
@@ -39,14 +55,30 @@ const registerUser = asyncHandler(
 
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const userObject = { name, username, password: hashedPassword, email }
+    const accessToken = jwt.sign(
+      { username },
+      config.get<string>('accessTokenSecret'),
+      { expiresIn: '30s' }
+      )
+      
+    const refreshToken = jwt.sign(
+        { username },
+        config.get<string>('refreshTokenSecret'),
+        { expiresIn: '1d' }
+      )
+    
+    const userObject = { name, username, password: hashedPassword, email, refreshToken }
 
     const newUser = await UserModel.create(userObject)
 
+    await newUser.save()
+
     if (newUser) {
-      res
-        .status(201)
-        .json({ message: `New user ${username} was created successfully` })
+      res.cookie('jwt', refreshToken, {
+        httpOnly: true,
+        maxAge: 24 * 60 * 60 * 1000
+      })
+      res.json({ accessToken })
     } else {
       res
         .status(400)
@@ -59,7 +91,7 @@ const registerUser = asyncHandler(
 // @route  POST /login
 // @access Private
 const loginUser = asyncHandler(
-  async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
+  async (req: Request<{}, {}, LoginUserInput['body']>, res: Response) => {
     const { email, password } = req.body
 
     if (!password || !email) {
@@ -67,31 +99,30 @@ const loginUser = asyncHandler(
       return
     }
 
-    const match = await UserModel.findOne({ email }).select('-password').lean()
+    const match = await UserModel.findOne({ email }).select('-password').exec()
     console.log(match)
 
     if (match) {
       const accessToken = jwt.sign(
-        match,
+        { username: match.username },
         config.get<string>('accessTokenSecret'),
         { expiresIn: '30s' }
       )
 
       const refreshToken = jwt.sign(
-        match,
+        { username: match.username },
         config.get<string>('refreshTokenSecret'),
         { expiresIn: '1d' }
       )
 
-      const user = await UserModel.findOne({ email }).exec()
-      user.refreshToken = refreshToken
-      await user.save()
+      match.refreshToken = refreshToken
+      await match.save()
 
       res.cookie('jwt', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json(accessToken)
+      res.json({ accessToken })
     } else {
       res.status(401).json({ message: 'No user found' })
     }
@@ -102,13 +133,39 @@ const loginUser = asyncHandler(
 // @route  POST /logout
 // @access Private
 const logoutUser = asyncHandler(
-  async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
+  async (req: Request<{}, {}, LogoutUserInput['body']>, res: Response) => {
     const { username } = req.body
 
     if (!username) {
       res.status(400).json({ message: 'All fields are required' })
       return
     }
+
+    const cookies = req.cookies
+
+    if (!cookies?.jwt) {
+      res.sendStatus(204)
+      return
+    }
+
+    console.log(cookies.jwt)
+
+    const refreshToken = cookies.jwt
+
+    const foundUser = await UserModel.findOne({ refreshToken }).exec()
+
+    if (!foundUser) {
+      res.clearCookie('jwt', { httpOnly: true })
+      res.sendStatus(204)
+      return
+    }
+
+    foundUser.refreshToken = 'no-token'
+
+    await foundUser.save()
+
+    res.clearCookie('jwt', { httpOnly: true })
+    res.sendStatus(204)
   }
 )
 
@@ -132,14 +189,7 @@ const updateUser = asyncHandler(
       return
     }
 
-    const duplicate = await UserModel.findOne({ username: username })
-      .lean()
-      .exec()
-
-    // if (duplicate && duplicate.username === username) {
-    //   res.status(409).json({ message: 'Duplicate username' })
-    //   return
-    // }
+    await UserModel.findOne({ username: username }).lean().exec()
 
     user.name = name
     user.username = username
@@ -150,7 +200,7 @@ const updateUser = asyncHandler(
     if (link) user.link = link
     if (image) user.image = image
 
-    const updatedUser = await user.save()
+    await user.save()
 
     res.json({ message: `${username} updated` })
   }
@@ -174,16 +224,57 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const result = user.deleteOne()
+  await user.deleteOne()
 
   res.json(`User ${username} deleted`)
 })
 
+const handleRefreshToken = async (req: Request, res: Response) => {
+  const cookies = req.cookies
+
+  if (!cookies?.jwt) {
+    res.sendStatus(401)
+    return
+  }
+
+  console.log(cookies.jwt)
+
+  const refreshToken: string = cookies.jwt
+
+  const foundUser = await UserModel.findOne({ refreshToken }).exec()
+
+  if (!foundUser) {
+    res.sendStatus(403)
+    return
+  }
+
+  jwt.verify(
+    refreshToken,
+    config.get<string>('refreshTokenSecret'),
+    (err, decoded: jwt.JwtPayload) => {
+      if (err || foundUser.username !== decoded.username) {
+        res.sendStatus(403)
+        return
+      }
+
+      const accessToken = jwt.sign(
+        { username: decoded.username },
+        config.get<string>('accessTokenSecret'),
+        { expiresIn: '30s' }
+      )
+
+      res.json({ accessToken })
+    }
+  )
+}
+
 export default {
   getAllUsers,
+  getUser,
   registerUser,
   loginUser,
   logoutUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  handleRefreshToken
 }
