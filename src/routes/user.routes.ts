@@ -1,11 +1,13 @@
 import express from 'express'
 import userController from '../controllers/user.controller'
-import { createUserSchema } from '../schema/user.schema'
+import { createUserSchema, loginUserSchema, logoutUserSchema } from '../schema/user.schema'
 import validate from '../middleware/validateResource'
 
 const router = express.Router()
 
 router.route('/users').get(userController.getAllUsers)
+
+router.route('/users/:userId').get(userController.getUser)
 
 router
   .route('/register')
@@ -13,10 +15,12 @@ router
 
 router
   .route('/login')
-  .post(validate(createUserSchema), userController.loginUser)
+  .post(validate(loginUserSchema), userController.loginUser)
 
 router
   .route('/logout')
-  .get(validate(createUserSchema), userController.logoutUser)
+  .get(validate(logoutUserSchema), userController.logoutUser)
+
+router.route('/refresh').get(userController.handleRefreshToken)
 
 export default router
