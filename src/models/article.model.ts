@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { Schema, model, Types, Document } from 'mongoose'
 
 export interface ImageDocument extends Document {
@@ -10,9 +11,13 @@ export interface ArticleDocument extends Document {
   url: string
   body: string
   images: Types.DocumentArray<ImageDocument>
-  date: Date
+  date: string
   views: number
   likes: number
+  comments: {
+    type: typeof Schema.Types.ObjectId
+    ref: string
+  }[]
 }
 
 const ImageSchema = new Schema<ImageDocument>({
@@ -25,9 +30,19 @@ const articleSchema = new Schema<ArticleDocument>({
   url: { type: String, required: true, unique: true },
   body: { type: String, required: true },
   images: [ImageSchema],
-  date: { type: Date, default: Date.now, required: true },
+  date: {
+    type: String,
+    default: dayjs(new Date()).format('DD/MMMM/YYYY'),
+    required: true
+  },
   views: { type: Number, default: 0 },
-  likes: { type: Number, default: 0 }
+  likes: { type: Number, default: 0 },
+  comments: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: 'Comment'
+    }
+  ]
 })
 
 const ArticleModel = model<ArticleDocument>('Article', articleSchema)

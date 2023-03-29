@@ -7,7 +7,6 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import corsOptions from './config/corsOptions'
 import express from 'express'
-import verifyJwt from './middleware/verifyJwt'
 
 connectDB() // connect to database
 
@@ -21,12 +20,13 @@ app.use(cookieParser())
 import healthcheck from './routes/health-check.routes'
 import userRoutes from './routes/user.routes'
 import articleRoutes from './routes/article.routes'
+import commentRoutes from './routes/comment.routes'
 
 // using routes
 app.use('/health-check', healthcheck)
-app.use('/', userRoutes)
-app.use(verifyJwt) // use verifyJwt for every route below
-app.use('/', articleRoutes)
+app.use('/users', userRoutes)
+app.use('/articles', articleRoutes)
+app.use('/comments', commentRoutes)
 
 const PORT = config.get<number>('port')
 

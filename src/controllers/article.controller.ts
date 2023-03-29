@@ -6,13 +6,28 @@ import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
 
 // @desc   Get all articles
 // @route  GET /articles
-// @access Private
+// @access Public
 const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
   const articles = await ArticleModel.find().lean()
   if (!articles?.length) {
     res.status(400).json({ message: 'No Articles Found' })
   } else {
     res.json(articles)
+  }
+})
+
+// @desc   Get article
+// @route  GET /articles/:articleId
+// @access Public
+const getArticle = asyncHandler(async (req: Request, res: Response) => {
+  const url = req.params.articleId
+
+  const article = await ArticleModel.findOne({ url }).lean()
+
+  if (!article) {
+    res.status(400).json({ message: 'No Article Found' })
+  } else {
+    res.json(article)
   }
 })
 
@@ -72,7 +87,7 @@ const updateArticle = asyncHandler(
     article.title = title
     article.body = body
 
-    const updatedArticle = await article.save()
+    await article.save()
 
     res.json({ message: `"${title}" updated` })
   }
@@ -96,12 +111,13 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const result = article.deleteOne()
+  article.deleteOne()
 
   res.json(`"${url}" deleted`)
 })
 
 export default {
+  getArticle,
   getAllArticles,
   createArticle,
   updateArticle,

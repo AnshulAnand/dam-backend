@@ -1,7 +1,11 @@
 import { Request, Response } from 'express'
 import UserModel from '../models/user.model'
 import asyncHandler from 'express-async-handler'
-import { CreateUserInput, LoginUserInput, LogoutUserInput } from '../schema/user.schema'
+import {
+  CreateUserInput,
+  LoginUserInput,
+  LogoutUserInput
+} from '../schema/user.schema'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from 'config'
@@ -59,15 +63,21 @@ const registerUser = asyncHandler(
       { username },
       config.get<string>('accessTokenSecret'),
       { expiresIn: '30s' }
-      )
-      
+    )
+
     const refreshToken = jwt.sign(
-        { username },
-        config.get<string>('refreshTokenSecret'),
-        { expiresIn: '1d' }
-      )
-    
-    const userObject = { name, username, password: hashedPassword, email, refreshToken }
+      { username },
+      config.get<string>('refreshTokenSecret'),
+      { expiresIn: '1d' }
+    )
+
+    const userObject = {
+      name,
+      username,
+      password: hashedPassword,
+      email,
+      refreshToken
+    }
 
     const newUser = await UserModel.create(userObject)
 
@@ -176,7 +186,7 @@ const updateUser = asyncHandler(
   async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
     const { name, username, password, country, bio, link, image } = req.body
 
-    if (!name || !username) {
+    if (!username) {
       res.status(400).json({ message: 'All fields are required' })
       return
     }
@@ -191,9 +201,9 @@ const updateUser = asyncHandler(
 
     await UserModel.findOne({ username: username }).lean().exec()
 
-    user.name = name
     user.username = username
 
+    if (user) user.name = name
     if (password) user.password = await bcrypt.hash(password, 10)
     if (country) user.country = country
     if (bio) user.bio = bio
@@ -229,6 +239,9 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   res.json(`User ${username} deleted`)
 })
 
+// @desc   Handle refresh token
+// @route  GET /users/refresh
+// @access Private
 const handleRefreshToken = async (req: Request, res: Response) => {
   const cookies = req.cookies
 
