@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import { Request, Response } from 'express'
 import ArticleModel from '../models/article.model'
+import UserModel from '../models/user.model'
 import asyncHandler from 'express-async-handler'
 import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
 
@@ -36,7 +37,16 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const createArticle = asyncHandler(
   async (req: Request<{}, {}, CreateArticleInput['body']>, res: Response) => {
-    const { user, title, body, images } = req.body
+    const { title, body } = req.body
+    const username = req.user
+
+    const user = await UserModel.findOne({ username })
+
+    if (!user) {
+      res.status(400)
+      res.json({ message: `User ${username} not found` })
+      return
+    }
 
     if (!title || !body) {
       res.status(400).json({ message: 'All fields are required' })
@@ -46,7 +56,7 @@ const createArticle = asyncHandler(
     const url =
       title.replace(/ /g, '-') + '-' + dayjs(new Date()).format('DD/MM/YY')
 
-    const articleObject = { user, title, url, body }
+    const articleObject = { user: user.id, title, url, body }
 
     const newArticle = await ArticleModel.create(articleObject)
 

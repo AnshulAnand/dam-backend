@@ -1,11 +1,7 @@
 import { Request, Response } from 'express'
 import UserModel from '../models/user.model'
 import asyncHandler from 'express-async-handler'
-import {
-  CreateUserInput,
-  LoginUserInput,
-  LogoutUserInput
-} from '../schema/user.schema'
+import { CreateUserInput, LoginUserInput } from '../schema/user.schema'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from 'config'
@@ -109,7 +105,7 @@ const loginUser = asyncHandler(
       return
     }
 
-    const match = await UserModel.findOne({ email }).select('-password').exec()
+    const match = await UserModel.findOne({ email }).exec()
     console.log(match)
 
     if (match) {
@@ -142,42 +138,40 @@ const loginUser = asyncHandler(
 // @desc   Logout user
 // @route  POST /logout
 // @access Private
-const logoutUser = asyncHandler(
-  async (req: Request<{}, {}, LogoutUserInput['body']>, res: Response) => {
-    const { username } = req.body
+const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+  const username = req.user
 
-    if (!username) {
-      res.status(400).json({ message: 'All fields are required' })
-      return
-    }
+  if (!username) {
+    res.status(400).json({ message: `User ${username} not found` })
+    return
+  }
 
-    const cookies = req.cookies
+  const cookies = req.cookies
 
-    if (!cookies?.jwt) {
-      res.sendStatus(204)
-      return
-    }
+  if (!cookies?.jwt) {
+    res.sendStatus(204)
+    return
+  }
 
-    console.log(cookies.jwt)
+  console.log(cookies.jwt)
 
-    const refreshToken = cookies.jwt
+  const refreshToken = cookies.jwt
 
-    const foundUser = await UserModel.findOne({ refreshToken }).exec()
+  const foundUser = await UserModel.findOne({ refreshToken }).exec()
 
-    if (!foundUser) {
-      res.clearCookie('jwt', { httpOnly: true })
-      res.sendStatus(204)
-      return
-    }
-
-    foundUser.refreshToken = 'no-token'
-
-    await foundUser.save()
-
+  if (!foundUser) {
     res.clearCookie('jwt', { httpOnly: true })
     res.sendStatus(204)
+    return
   }
-)
+
+  foundUser.refreshToken = 'no-token'
+
+  await foundUser.save()
+
+  res.clearCookie('jwt', { httpOnly: true })
+  res.sendStatus(204)
+})
 
 // @desc   Update user
 // @route  PATCH /users
