@@ -19,7 +19,7 @@ const getAllComments = asyncHandler(async (req: Request, res: Response) => {
 // @route  POST /comments
 // @access Private
 const postComment = asyncHandler(async (req: Request, res: Response) => {
-  const { articleId /* url is the articleId */, body } = req.body
+  const { articleId, body } = req.body
 
   if (!articleId || !body) {
     res.status(400)
@@ -31,7 +31,7 @@ const postComment = asyncHandler(async (req: Request, res: Response) => {
 
   if (!article) {
     res.json(400)
-    res.json({ message: `article ${articleId} not found` })
+    res.json({ message: `article not found` })
     return
   }
 

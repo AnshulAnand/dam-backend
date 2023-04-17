@@ -20,10 +20,10 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Get user
-// @route  GET /users/:userId
+// @route  GET /users/user
 // @access Private
 const getUser = asyncHandler(async (req: Request, res: Response) => {
-  const username = req.params.userId
+  const { username } = req.body
 
   const user = await UserModel.findOne({ username }).select('-password').lean()
 
@@ -185,15 +185,13 @@ const updateUser = asyncHandler(
       return
     }
 
-    const user = await UserModel.findOne({ username: username }).exec()
+    const user = await UserModel.findOne({ username: req.user }).exec()
     console.log(user)
 
     if (!user) {
       res.status(400).json({ message: 'User not found' })
       return
     }
-
-    await UserModel.findOne({ username: username }).lean().exec()
 
     user.username = username
 
@@ -214,14 +212,14 @@ const updateUser = asyncHandler(
 // @route  DELETE /users
 // @access Private
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  const { username } = req.body
+  const username = req.user
 
   if (!username) {
     res.status(400).json({ message: 'Username required' })
     return
   }
 
-  const user = await UserModel.findOne({ username: username }).exec()
+  const user = await UserModel.findOne({ username }).exec()
 
   if (!user) {
     res.status(400).json({ message: 'User not found' })
@@ -230,7 +228,7 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
   await user.deleteOne()
 
-  res.json(`User ${username} deleted`)
+  res.json(`${username} deleted`)
 })
 
 // @desc   Handle refresh token

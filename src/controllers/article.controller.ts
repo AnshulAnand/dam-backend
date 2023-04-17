@@ -63,7 +63,7 @@ const createArticle = asyncHandler(
     if (newArticle) {
       res
         .status(201)
-        .json({ message: `New article "${title}" was created successfully` })
+        .json({ message: `Post created successfully` })
     } else {
       res
         .status(400)
@@ -99,7 +99,7 @@ const updateArticle = asyncHandler(
 
     await article.save()
 
-    res.json({ message: `"${title}" updated` })
+    res.json({ message: 'Post updated successfully' })
   }
 )
 
@@ -114,7 +114,7 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const article = await ArticleModel.findOne({ url: url }).exec()
+  const article = await ArticleModel.findOne({ url }).exec()
 
   if (!article) {
     res.status(400).json({ message: 'Article not found' })
@@ -123,7 +123,7 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
 
   article.deleteOne()
 
-  res.json(`"${url}" deleted`)
+  res.json('Post deleted')
 })
 
 export default {

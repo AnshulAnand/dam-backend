@@ -12,7 +12,7 @@ router
   .patch(verifyJwt, userController.updateUser)
   .delete(verifyJwt, userController.deleteUser)
 
-router.route('/:userId').get(userController.getUser)
+router.route('/user').get(userController.getUser)
 
 router
   .route('/register')
