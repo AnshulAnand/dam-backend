@@ -61,9 +61,7 @@ const createArticle = asyncHandler(
     const newArticle = await ArticleModel.create(articleObject)
 
     if (newArticle) {
-      res
-        .status(201)
-        .json({ message: `Post created successfully` })
+      res.status(201).json({ message: `Post created successfully` })
     } else {
       res
         .status(400)

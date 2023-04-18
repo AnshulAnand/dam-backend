@@ -53,18 +53,21 @@ const registerUser = asyncHandler(
       return
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10)
+    const hashedPassword = await bcrypt.hash(
+      password,
+      config.get<number>('saltWorkFactor')
+    )
 
     const accessToken = jwt.sign(
       { username },
       config.get<string>('accessTokenSecret'),
-      { expiresIn: '30s' }
+      { expiresIn: config.get<string>('accessTokenTtl') }
     )
 
     const refreshToken = jwt.sign(
       { username },
       config.get<string>('refreshTokenSecret'),
-      { expiresIn: '1d' }
+      { expiresIn: config.get<string>('refreshTokenTtl') }
     )
 
     const userObject = {
@@ -112,13 +115,13 @@ const loginUser = asyncHandler(
       const accessToken = jwt.sign(
         { username: match.username },
         config.get<string>('accessTokenSecret'),
-        { expiresIn: '30s' }
+        { expiresIn: config.get<string>('accessTokenTtl') }
       )
 
       const refreshToken = jwt.sign(
         { username: match.username },
         config.get<string>('refreshTokenSecret'),
-        { expiresIn: '1d' }
+        { expiresIn: config.get<string>('refreshTokenTtl') }
       )
 
       match.refreshToken = refreshToken
@@ -196,7 +199,11 @@ const updateUser = asyncHandler(
     user.username = username
 
     if (user) user.name = name
-    if (password) user.password = await bcrypt.hash(password, 10)
+    if (password)
+      user.password = await bcrypt.hash(
+        password,
+        config.get<number>('saltWorkFactor')
+      )
     if (country) user.country = country
     if (bio) user.bio = bio
     if (link) user.link = link
@@ -265,7 +272,7 @@ const handleRefreshToken = async (req: Request, res: Response) => {
       const accessToken = jwt.sign(
         { username: decoded.username },
         config.get<string>('accessTokenSecret'),
-        { expiresIn: '30s' }
+        { expiresIn: config.get<string>('accessTokenTtl') }
       )
 
       res.json({ accessToken })

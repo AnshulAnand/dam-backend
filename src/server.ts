@@ -1,8 +1,9 @@
 if (process.env.NODE_ENV !== 'production') require('dotenv').config()
 import config from 'config'
-import logger from './utils/logger'
 import connectDB from './utils/connect'
 import errorHandler from './utils/errorHandler'
+import logger from './utils/logger'
+import logEvents from './utils/logEvents'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import corsOptions from './config/corsOptions'
@@ -32,4 +33,7 @@ const PORT = config.get<number>('port')
 
 app.use(errorHandler)
 
-app.listen(PORT, () => logger.info(`Server running on port ${PORT}`))
+app.listen(PORT, () => {
+  logger.info(`Server started on port ${PORT}`)
+  logEvents(`Server started on port ${PORT}`, 'logs.txt')
+})
