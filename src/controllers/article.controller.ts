@@ -77,7 +77,7 @@ const updateArticle = asyncHandler(
   async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
     const { url, title, body } = req.body
 
-    if (!url || !title || !body) {
+    if (!url) {
       res.status(400).json({ message: 'All fields are required' })
       return
     }
@@ -90,10 +90,14 @@ const updateArticle = asyncHandler(
       return
     }
 
-    article.url =
-      title.replace(/ /g, '-') + '-' + dayjs(new Date()).format('DD/MM/YY')
-    article.title = title
-    article.body = body
+    if (title) {
+      article.title = title
+      article.url =
+        title.replace(/ /g, '-') + '-' + dayjs(new Date()).format('DD/MM/YY')
+    }
+
+    if (body) article.body = body
+    article.edited = true
 
     await article.save()
 

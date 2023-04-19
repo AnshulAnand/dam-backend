@@ -1,6 +1,6 @@
 import { Schema, model, Types, Document } from 'mongoose'
 
-export interface CommentDocument extends Document {
+export interface ReplyDocument extends Document {
   user: Types.ObjectId
   parent: Types.ObjectId
   body: string
@@ -9,15 +9,15 @@ export interface CommentDocument extends Document {
   edited: boolean
 }
 
-const commentSchema = new Schema<CommentDocument>({
+const commentSchema = new Schema<ReplyDocument>({
   user: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
-  parent: { type: Schema.Types.ObjectId, required: true, ref: 'Article' },
+  parent: { type: Schema.Types.ObjectId, required: true, ref: 'Comment' },
   body: { type: String, required: true },
   date: { type: Date, default: Date.now, required: true },
   likes: { type: Number, default: 0 },
   edited: { type: Boolean, default: false }
 })
 
-const CommentModel = model<CommentDocument>('Comment', commentSchema)
+const ReplyModel = model<ReplyDocument>('Replies', commentSchema)
 
-export default CommentModel
+export default ReplyModel

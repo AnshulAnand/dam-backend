@@ -87,7 +87,7 @@ const registerUser = asyncHandler(
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json({ accessToken })
+      res.json({ accessToken, username })
     } else {
       res
         .status(400)
@@ -131,7 +131,7 @@ const loginUser = asyncHandler(
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json({ accessToken })
+      res.json({ accessToken, username: match.username })
     } else {
       res.status(401).json({ message: 'No user found' })
     }
@@ -275,7 +275,7 @@ const handleRefreshToken = async (req: Request, res: Response) => {
         { expiresIn: config.get<string>('accessTokenTtl') }
       )
 
-      res.json({ accessToken })
+      res.json({ accessToken, username: decoded.username })
     }
   )
 }

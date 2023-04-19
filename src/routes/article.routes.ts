@@ -1,7 +1,7 @@
 import express from 'express'
 import articleController from '../controllers/article.controller'
 import validate from '../middleware/validateResource'
-import { createArticleSchema } from '../schema/article.schema'
+import { createArticleSchema, articleSchema } from '../schema/article.schema'
 import verifyJwt from '../middleware/verifyJwt'
 
 const router = express.Router()
@@ -16,15 +16,7 @@ router
     validate(createArticleSchema),
     articleController.createArticle
   )
-  .patch(
-    verifyJwt,
-    validate(createArticleSchema),
-    articleController.updateArticle
-  )
-  .delete(
-    verifyJwt,
-    validate(createArticleSchema),
-    articleController.deleteArticle
-  )
+  .patch(verifyJwt, validate(articleSchema), articleController.updateArticle)
+  .delete(verifyJwt, articleController.deleteArticle)
 
 export default router

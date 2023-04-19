@@ -1,4 +1,3 @@
-import dayjs from 'dayjs'
 import { Schema, model, Document } from 'mongoose'
 
 export interface UserDocument extends Document {
@@ -7,7 +6,7 @@ export interface UserDocument extends Document {
   email: string
   password: string
   refreshToken: string
-  date: string
+  date: Date
   country?: string
   bio?: string
   link?: string
@@ -21,11 +20,7 @@ const userSchema = new Schema<UserDocument>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   refreshToken: { type: String, required: true },
-  date: {
-    type: String,
-    default: dayjs(new Date()).format('DD/MMMM/YYYY'),
-    required: true
-  },
+  date: { type: Date, default: Date.now, required: true },
   country: { type: String, default: '' },
   bio: { type: String, default: '' },
   link: { type: String, default: '' },

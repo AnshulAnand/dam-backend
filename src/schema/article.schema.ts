@@ -10,9 +10,9 @@ export const createArticleSchema = object({
 
 export const articleSchema = object({
   body: object({
-    title: string({ required_error: 'Title is required' }),
+    title: string().optional(),
     url: string({ required_error: 'URL is required ' }),
-    body: string({ required_error: 'Body is required' }),
+    body: string().optional(),
     images: string().optional()
   })
 })
