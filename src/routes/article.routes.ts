@@ -6,7 +6,10 @@ import verifyJwt from '../middleware/verifyJwt'
 
 const router = express.Router()
 
-router.route('/:articleId').get(articleController.getArticle)
+router
+  .route('/article')
+  .get(articleController.getArticle)
+  .post(verifyJwt, articleController.likeArticle)
 
 router
   .route('/')

@@ -2,8 +2,10 @@ import dayjs from 'dayjs'
 import { Request, Response } from 'express'
 import ArticleModel from '../models/article.model'
 import UserModel from '../models/user.model'
+import LikeModel from '../models/likes.model'
 import asyncHandler from 'express-async-handler'
 import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
+const nanoid = import('nanoid')
 
 // @desc   Get all articles
 // @route  GET /articles
@@ -18,17 +20,63 @@ const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Get article
-// @route  GET /articles/:articleId
+// @route  GET /articles/article
 // @access Public
 const getArticle = asyncHandler(async (req: Request, res: Response) => {
-  const url = req.params.articleId
+  const { url } = req.body
 
-  const article = await ArticleModel.findOne({ url }).lean()
+  const article = await ArticleModel.findOne({ url }).exec()
 
   if (!article) {
     res.status(400).json({ message: 'No Article Found' })
+    return
+  }
+
+  article.views += 1
+  await article.save()
+
+  res.json(article)
+})
+
+// @desc   Like article
+// @route  POST /articles/article
+// @access Private
+const likeArticle = asyncHandler(async (req: Request, res: Response) => {
+  const { url } = req.body
+
+  const liked = await LikeModel.exists({ user: req.user })
+
+  if (liked === null) {
+    const article = await ArticleModel.findOne({ url }).exec()
+
+    if (!article) {
+      res.status(400).json({ message: 'Article Not Found' })
+      return
+    }
+
+    article.likes += 1
+    await article.save()
+
+    const likeObject = { user: req.user, article: url }
+
+    await LikeModel.create(likeObject)
+
+    res.json({ message: 'Like updated successfully' })
   } else {
-    res.json(article)
+    const article = await ArticleModel.findOne({ url }).exec()
+
+    if (!article) {
+      res.status(400).json({ message: 'Article Not Found' })
+      return
+    }
+
+    article.likes -= 1
+    await article.save()
+
+    const liked = await LikeModel.findOne({ user: req.user })
+    await liked.deleteOne()
+
+    res.json({ message: 'Like updated successfully' })
   }
 })
 
@@ -53,8 +101,12 @@ const createArticle = asyncHandler(
       return
     }
 
-    const url =
-      title.replace(/ /g, '-') + '-' + dayjs(new Date()).format('DD/MM/YY')
+    const nanoId = (await nanoid).customAlphabet(
+      'abcdefghijklmnopqrstuvw0123456789',
+      5
+    )
+
+    const url = title.replace(/ /g, '-') + '-' + nanoId()
 
     const articleObject = { user: user.id, title, url, body }
 
@@ -82,7 +134,7 @@ const updateArticle = asyncHandler(
       return
     }
 
-    const article = await ArticleModel.findOne({ url: url }).exec()
+    const article = await ArticleModel.findOne({ url }).exec()
     console.log(article)
 
     if (!article) {
@@ -92,8 +144,11 @@ const updateArticle = asyncHandler(
 
     if (title) {
       article.title = title
-      article.url =
-        title.replace(/ /g, '-') + '-' + dayjs(new Date()).format('DD/MM/YY')
+      const nanoId = (await nanoid).customAlphabet(
+        'abcdefghijklmnopqrstuvw0123456789',
+        5
+      )
+      article.url = title.replace(/ /g, '-') + '-' + nanoId()
     }
 
     if (body) article.body = body
@@ -123,13 +178,14 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  article.deleteOne()
+  await article.deleteOne()
 
   res.json('Post deleted')
 })
 
 export default {
   getArticle,
+  likeArticle,
   getAllArticles,
   createArticle,
   updateArticle,
