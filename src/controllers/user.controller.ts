@@ -109,7 +109,6 @@ const loginUser = asyncHandler(
     }
 
     const match = await UserModel.findOne({ email }).exec()
-    console.log(match)
 
     if (match) {
       const accessToken = jwt.sign(
@@ -156,8 +155,6 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  console.log(cookies.jwt)
-
   const refreshToken = cookies.jwt
 
   const foundUser = await UserModel.findOne({ refreshToken }).exec()
@@ -189,7 +186,6 @@ const updateUser = asyncHandler(
     }
 
     const user = await UserModel.findOne({ username: req.user }).exec()
-    console.log(user)
 
     if (!user) {
       res.status(400).json({ message: 'User not found' })
@@ -248,8 +244,6 @@ const handleRefreshToken = async (req: Request, res: Response) => {
     res.sendStatus(401)
     return
   }
-
-  console.log(cookies.jwt)
 
   const refreshToken: string = cookies.jwt
 

@@ -4,6 +4,6 @@ export default {
   accessTokenSecret: '',
   refreshTokenSecret: '',
   saltWorkFactor: 10,
-  accessTokenTtl: '15m',
+  accessTokenTtl: '30m',
   refreshTokenTtl: '1y'
 }

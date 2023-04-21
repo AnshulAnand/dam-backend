@@ -1,8 +1,7 @@
-import dayjs from 'dayjs'
 import { Request, Response } from 'express'
 import ArticleModel from '../models/article.model'
 import UserModel from '../models/user.model'
-import LikeModel from '../models/likes.model'
+import LikeModel from '../models/articleLikes.model'
 import asyncHandler from 'express-async-handler'
 import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
 const nanoid = import('nanoid')
@@ -44,9 +43,9 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
 const likeArticle = asyncHandler(async (req: Request, res: Response) => {
   const { url } = req.body
 
-  const liked = await LikeModel.exists({ user: req.user })
+  const liked = await LikeModel.findOne({ user: req.user, article: url }).exec()
 
-  if (liked === null) {
+  if (!liked) {
     const article = await ArticleModel.findOne({ url }).exec()
 
     if (!article) {
@@ -73,7 +72,6 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
     article.likes -= 1
     await article.save()
 
-    const liked = await LikeModel.findOne({ user: req.user })
     await liked.deleteOne()
 
     res.json({ message: 'Like updated successfully' })
@@ -101,10 +99,7 @@ const createArticle = asyncHandler(
       return
     }
 
-    const nanoId = (await nanoid).customAlphabet(
-      'abcdefghijklmnopqrstuvw0123456789',
-      5
-    )
+    const nanoId = (await nanoid).customAlphabet('0123456789', 5)
 
     const url = title.replace(/ /g, '-') + '-' + nanoId()
 
@@ -135,7 +130,6 @@ const updateArticle = asyncHandler(
     }
 
     const article = await ArticleModel.findOne({ url }).exec()
-    console.log(article)
 
     if (!article) {
       res.status(400).json({ message: 'Article not found' })
@@ -144,10 +138,7 @@ const updateArticle = asyncHandler(
 
     if (title) {
       article.title = title
-      const nanoId = (await nanoid).customAlphabet(
-        'abcdefghijklmnopqrstuvw0123456789',
-        5
-      )
+      const nanoId = (await nanoid).customAlphabet('0123456789', 5)
       article.url = title.replace(/ /g, '-') + '-' + nanoId()
     }
 

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import ArticleModel from '../models/article.model'
 import CommentModel from '../models/comment.model'
+import LikeModel from '../models/commentLikes.model'
 import asyncHandler from 'express-async-handler'
 
 // @desc   Get all comments
@@ -15,27 +16,77 @@ const getAllComments = asyncHandler(async (req: Request, res: Response) => {
   }
 })
 
-// @desc   Post comment
-// @route  POST /comments
+// @desc   Like comment
+// @route  POST /comments/comment
 // @access Private
-const postComment = asyncHandler(async (req: Request, res: Response) => {
-  const { articleId, body } = req.body
+const likeComment = asyncHandler(async (req: Request, res: Response) => {
+  const { commentId, parent } = req.body
 
-  if (!articleId || !body) {
+  if (!commentId || !parent) {
     res.status(400)
     res.json({ message: 'All fields are required' })
     return
   }
 
-  const article = await ArticleModel.findOne({ articleId })
+  const liked = await LikeModel.findOne({
+    user: req.user,
+    _id: commentId
+  }).exec()
 
-  if (!article) {
-    res.json(400)
-    res.json({ message: `article not found` })
+  if (!liked) {
+    const comment = await CommentModel.findById(commentId).exec()
+
+    if (!comment) {
+      res.status(400).json({ message: 'Comment Not Found' })
+      return
+    }
+
+    comment.likes += 1
+    await comment.save()
+
+    const likeObject = { user: req.user, parent }
+
+    await LikeModel.create(likeObject)
+
+    res.json({ message: 'Like updated successfully' })
+  } else {
+    const comment = await CommentModel.findById(commentId).exec()
+
+    if (!comment) {
+      res.status(400).json({ message: 'Comment Not Found' })
+      return
+    }
+
+    comment.likes -= 1
+    await comment.save()
+
+    await liked.deleteOne()
+
+    res.json({ message: 'Like updated successfully' })
+  }
+})
+
+// @desc   Post comment
+// @route  POST /comments
+// @access Private
+const postComment = asyncHandler(async (req: Request, res: Response) => {
+  const { parent, body } = req.body
+
+  if (!parent || !body) {
+    res.status(400)
+    res.json({ message: 'All fields are required' })
     return
   }
 
-  const commentObject = { user: article._id, body }
+  const article = await ArticleModel.findOne({ url: parent })
+
+  if (!article) {
+    res.status(400)
+    res.json({ message: 'Article not found' })
+    return
+  }
+
+  const commentObject = { user: req.user, parent, body }
 
   const comment = await CommentModel.create(commentObject)
 
@@ -45,10 +96,10 @@ const postComment = asyncHandler(async (req: Request, res: Response) => {
 
   if (comment) {
     res.status(201)
-    res.json({ message: `Comment was created successfully` })
+    res.json({ message: 'Comment added successfully' })
   } else {
     res.status(400)
-    res.json({ message: `Invalid data received, can not create comment` })
+    res.json({ message: 'Invalid data received, could not create comment' })
   }
 })
 
@@ -105,6 +156,7 @@ const deleteComment = asyncHandler(async (req: Request, res: Response) => {
 
 export default {
   getAllComments,
+  likeComment,
   postComment,
   updateComment,
   deleteComment

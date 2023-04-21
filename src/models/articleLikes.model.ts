@@ -10,6 +10,6 @@ const likeSchema = new Schema<LikeDocument>({
   article: { type: String, required: true }
 })
 
-const LikeModel = model<LikeDocument>('Like', likeSchema)
+const LikeModel = model<LikeDocument>('ArticleLike', likeSchema)
 
 export default LikeModel

@@ -12,7 +12,6 @@ declare global {
 
 const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization']
-  console.log(authHeader)
 
   if (!authHeader) {
     res.sendStatus(401)
