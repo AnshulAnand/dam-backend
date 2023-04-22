@@ -83,7 +83,7 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const createArticle = asyncHandler(
   async (req: Request<{}, {}, CreateArticleInput['body']>, res: Response) => {
-    const { title, body } = req.body
+    const { title, body, image } = req.body
     const username = req.user
 
     const user = await UserModel.findOne({ username })
@@ -103,7 +103,17 @@ const createArticle = asyncHandler(
 
     const url = title.replace(/ /g, '-') + '-' + nanoId()
 
-    const articleObject = { user: user.id, title, url, body }
+    interface ArticleObject {
+      user: string
+      title: string
+      url: string
+      body: string
+      image?: string
+    }
+
+    const articleObject: ArticleObject = { user: user.id, title, url, body }
+
+    if (image) articleObject.image = image
 
     const newArticle = await ArticleModel.create(articleObject)
 
@@ -122,7 +132,7 @@ const createArticle = asyncHandler(
 // @access Private
 const updateArticle = asyncHandler(
   async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
-    const { url, title, body } = req.body
+    const { url, title, body, image } = req.body
 
     if (!url) {
       res.status(400).json({ message: 'All fields are required' })
@@ -143,7 +153,8 @@ const updateArticle = asyncHandler(
     }
 
     if (body) article.body = body
-    article.edited = true
+    if (image) article.image = image
+    if (article.edited === false) article.edited = true
 
     await article.save()
 

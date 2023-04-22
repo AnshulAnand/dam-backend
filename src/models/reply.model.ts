@@ -1,7 +1,7 @@
 import { Schema, model, Types, Document } from 'mongoose'
 
 export interface ReplyDocument extends Document {
-  user: Types.ObjectId
+  user: string
   parent: Types.ObjectId
   body: string
   likes: number
@@ -10,7 +10,7 @@ export interface ReplyDocument extends Document {
 
 const replySchema = new Schema<ReplyDocument>(
   {
-    user: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
+    user: { type: String, required: true },
     parent: { type: Schema.Types.ObjectId, required: true, ref: 'Comment' },
     body: { type: String, required: true },
     likes: { type: Number, default: 0 },

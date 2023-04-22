@@ -5,7 +5,7 @@ export interface ArticleDocument extends Document {
   title: string
   url: string
   body: string
-  images: string
+  image: string
   views: number
   likes: number
   comments: {
@@ -21,7 +21,7 @@ const articleSchema = new Schema<ArticleDocument>(
     title: { type: String, required: true },
     url: { type: String, required: true, unique: true },
     body: { type: String, required: true },
-    images: { type: String, default: '' },
+    image: { type: String, default: '' },
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
     comments: [{ type: Schema.Types.ObjectId, ref: 'Comment' }],

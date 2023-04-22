@@ -2,6 +2,7 @@ import { Request, Response } from 'express'
 import ArticleModel from '../models/article.model'
 import CommentModel from '../models/comment.model'
 import LikeModel from '../models/commentLikes.model'
+import { CreateCommentInput, UpdateCommentInput } from '../schema/comment.shema'
 import asyncHandler from 'express-async-handler'
 
 // @desc   Get all comments
@@ -69,79 +70,87 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
 // @desc   Post comment
 // @route  POST /comments
 // @access Private
-const postComment = asyncHandler(async (req: Request, res: Response) => {
-  const { parent, body } = req.body
+const postComment = asyncHandler(
+  async (req: Request<{}, {}, CreateCommentInput['body']>, res: Response) => {
+    const { parent, body } = req.body
 
-  if (!parent || !body) {
-    res.status(400)
-    res.json({ message: 'All fields are required' })
-    return
+    if (!parent || !body) {
+      res.status(400)
+      res.json({ message: 'All fields are required' })
+      return
+    }
+
+    const article = await ArticleModel.findOne({ url: parent })
+
+    if (!article) {
+      res.status(400)
+      res.json({ message: 'Article not found' })
+      return
+    }
+
+    const commentObject = { user: req.user, parent, body }
+
+    const comment = await CommentModel.create(commentObject)
+
+    article.comments.push(comment._id)
+
+    await article.save()
+
+    if (comment) {
+      res.status(201)
+      res.json({ message: 'Comment added successfully' })
+    } else {
+      res.status(400)
+      res.json({ message: 'Invalid data received, could not create comment' })
+    }
   }
-
-  const article = await ArticleModel.findOne({ url: parent })
-
-  if (!article) {
-    res.status(400)
-    res.json({ message: 'Article not found' })
-    return
-  }
-
-  const commentObject = { user: req.user, parent, body }
-
-  const comment = await CommentModel.create(commentObject)
-
-  article.comments.push(comment._id)
-
-  await article.save()
-
-  if (comment) {
-    res.status(201)
-    res.json({ message: 'Comment added successfully' })
-  } else {
-    res.status(400)
-    res.json({ message: 'Invalid data received, could not create comment' })
-  }
-})
+)
 
 // @desc   Update comment
 // @route  PATCH /comments
 // @access Private
-const updateComment = asyncHandler(async (req: Request, res: Response) => {
-  const { commentId, body } = req.body
+const updateComment = asyncHandler(
+  async (req: Request<{}, {}, UpdateCommentInput['body']>, res: Response) => {
+    const { commentId, body } = req.body
 
-  if (!commentId || !body) {
-    res.status(400)
-    res.json({ message: 'All fields are reqiured' })
+    if (!commentId || !body) {
+      res.status(400)
+      res.json({ message: 'All fields are reqiured' })
+    }
+
+    const comment = await CommentModel.findById(commentId)
+
+    if (!comment) {
+      res.status(400)
+      res.json({ message: 'Comment not found' })
+      return
+    }
+
+    comment.body = body
+
+    if (comment.edited === false) {
+      comment.edited = true
+    }
+
+    await comment.save()
+
+    res.json({ message: 'Comment updated successfully' })
   }
-
-  const comment = await CommentModel.findById(commentId)
-
-  if (!comment) {
-    res.status(400)
-    res.json({ message: 'Comment not found' })
-    return
-  }
-
-  comment.body = body
-
-  await comment.save()
-
-  res.json({ message: 'Comment updated successfully' })
-})
+)
 
 // @desc   Delete comment
 // @route  DELETE /comments
 // @access Private
 const deleteComment = asyncHandler(async (req: Request, res: Response) => {
-  const { commentId } = req.body
+  const { parent }: { parent: string } = req.body
 
-  if (!commentId) {
+  if (!parent) {
     res.status(400)
     res.json({ message: 'All fields are required' })
     return
   }
 
-  const comment = await CommentModel.findById(commentId)
+  const comment = await CommentModel.findById(parent)
 
   if (!comment) {
     res.status(400)
