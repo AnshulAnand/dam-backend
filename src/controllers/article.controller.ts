@@ -10,12 +10,12 @@ const nanoid = import('nanoid')
 // @route  GET /articles
 // @access Public
 const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
-  const articles = await ArticleModel.find().lean()
-  if (!articles?.length) {
+  const results = res.paginatedResults
+  if (!results || results.results.length === 0) {
     res.status(400).json({ message: 'No Articles Found' })
-  } else {
-    res.json(articles)
+    return
   }
+  res.json(results)
 })
 
 // @desc   Get article
@@ -99,7 +99,7 @@ const createArticle = asyncHandler(
       return
     }
 
-    const nanoId = (await nanoid).customAlphabet('0123456789', 5)
+    const nanoId = (await nanoid).customAlphabet('abcde0123456789', 5)
 
     const url = title.replace(/ /g, '-') + '-' + nanoId()
 
@@ -148,7 +148,7 @@ const updateArticle = asyncHandler(
 
     if (title) {
       article.title = title
-      const nanoId = (await nanoid).customAlphabet('0123456789', 5)
+      const nanoId = (await nanoid).customAlphabet('abcde0123456789', 5)
       article.url = title.replace(/ /g, '-') + '-' + nanoId()
     }
 

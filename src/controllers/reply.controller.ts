@@ -9,12 +9,12 @@ import asyncHandler from 'express-async-handler'
 // @route  GET /replies
 // @access Public
 const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
-  const replies = await ReplyModel.find().lean()
-  if (!replies?.length) {
-    res.status(400).json({ message: 'No replies' })
-  } else {
-    res.json(replies)
+  const results = res.paginatedResults
+  if (!results || results.results.length === 0) {
+    res.status(400).json({ message: 'No replies found' })
+    return
   }
+  res.json(results)
 })
 
 // @desc   Like reply

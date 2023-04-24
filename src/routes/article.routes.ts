@@ -10,12 +10,12 @@ const router = express.Router()
 
 router
   .route('/article')
-  .get(paginatedResults(ArticleModel), articleController.getArticle)
+  .get(articleController.getArticle)
   .post(verifyJwt, articleController.likeArticle)
 
 router
   .route('/')
-  .get(articleController.getAllArticles)
+  .get(paginatedResults(ArticleModel), articleController.getAllArticles)
   .post(
     verifyJwt,
     validate(createArticleSchema),

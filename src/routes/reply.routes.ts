@@ -8,6 +8,8 @@ import ReplyModel from '../models/reply.model'
 
 const router = express.Router()
 
+router.route('/reply').post(verifyJwt, replyController.likeReply)
+
 router
   .route('/')
   .get(paginatedResults(ReplyModel), replyController.getAllreplies)

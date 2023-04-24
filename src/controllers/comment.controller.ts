@@ -9,12 +9,12 @@ import asyncHandler from 'express-async-handler'
 // @route  GET /comments
 // @access Public
 const getAllComments = asyncHandler(async (req: Request, res: Response) => {
-  const comments = await CommentModel.find().lean()
-  if (!comments?.length) {
-    res.status(400).json({ message: 'No comments' })
-  } else {
-    res.json(comments)
+  const results = res.paginatedResults
+  if (!results || results.results.length === 0) {
+    res.status(400).json({ message: 'No comments found' })
+    return
   }
+  res.json(results)
 })
 
 // @desc   Like comment

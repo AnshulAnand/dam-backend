@@ -11,6 +11,8 @@ import {
 
 const router = express.Router()
 
+router.route('/comment').post(verifyJwt, commentController.likeComment)
+
 router
   .route('/')
   .get(paginatedResults(CommentModel), commentController.getAllComments)

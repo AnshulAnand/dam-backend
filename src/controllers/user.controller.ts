@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import UserModel from '../models/user.model'
+import BasicAuthModel from '../models/basicAuth.model'
 import asyncHandler from 'express-async-handler'
 import { CreateUserInput, LoginUserInput } from '../schema/user.schema'
 import bcrypt from 'bcrypt'
@@ -46,10 +47,17 @@ const registerUser = asyncHandler(
       return
     }
 
-    const duplicate = await UserModel.findOne({ username }).lean().exec()
+    const duplicateUsername = await UserModel.findOne({ username }).lean()
 
-    if (duplicate) {
+    if (duplicateUsername) {
       res.status(409).json({ message: 'Username already exists' })
+      return
+    }
+
+    const duplicateEmail = await BasicAuthModel.findOne({ email }).lean()
+
+    if (duplicateEmail) {
+      res.status(409).json({ message: 'Email already exists' })
       return
     }
 
@@ -58,36 +66,40 @@ const registerUser = asyncHandler(
       config.get<number>('saltWorkFactor')
     )
 
+    const userObject = { name, username, refreshToken: 'no-token' }
+
+    const newUser = await UserModel.create(userObject)
+
+    const basicAuthObject = {
+      password: hashedPassword,
+      email,
+      user: newUser._id
+    }
+
+    const newBasicAuth = await BasicAuthModel.create(basicAuthObject)
+
     const accessToken = jwt.sign(
-      { username },
+      { userId: newUser._id },
       config.get<string>('accessTokenSecret'),
       { expiresIn: config.get<string>('accessTokenTtl') }
     )
 
     const refreshToken = jwt.sign(
-      { username },
+      { userId: newUser._id },
       config.get<string>('refreshTokenSecret'),
       { expiresIn: config.get<string>('refreshTokenTtl') }
     )
 
-    const userObject = {
-      name,
-      username,
-      password: hashedPassword,
-      email,
-      refreshToken
-    }
-
-    const newUser = await UserModel.create(userObject)
+    newUser.refreshToken = refreshToken
 
     await newUser.save()
 
-    if (newUser) {
+    if (newUser && newBasicAuth) {
       res.cookie('jwt', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json({ accessToken, username })
+      res.json({ accessToken })
     } else {
       res
         .status(400)
@@ -108,29 +120,31 @@ const loginUser = asyncHandler(
       return
     }
 
-    const match = await UserModel.findOne({ email }).exec()
+    const match = await BasicAuthModel.findOne({ email }).lean()
 
     if (match) {
+      const user = await UserModel.findById(match.user)
+
       const accessToken = jwt.sign(
-        { username: match.username },
+        { userId: user._id },
         config.get<string>('accessTokenSecret'),
         { expiresIn: config.get<string>('accessTokenTtl') }
       )
 
       const refreshToken = jwt.sign(
-        { username: match.username },
+        { userId: user._id },
         config.get<string>('refreshTokenSecret'),
         { expiresIn: config.get<string>('refreshTokenTtl') }
       )
 
-      match.refreshToken = refreshToken
-      await match.save()
+      user.refreshToken = refreshToken
+      await user.save()
 
       res.cookie('jwt', refreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json({ accessToken, username: match.username })
+      res.json({ accessToken })
     } else {
       res.status(401).json({ message: 'No user found' })
     }
@@ -178,7 +192,7 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const updateUser = asyncHandler(
   async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
-    const { name, username, password, country, bio, link, image } = req.body
+    const { name, username, country, bio, link, image } = req.body
 
     if (!username) {
       res.status(400).json({ message: 'All fields are required' })
@@ -195,11 +209,6 @@ const updateUser = asyncHandler(
     user.username = username
 
     if (user) user.name = name
-    if (password)
-      user.password = await bcrypt.hash(
-        password,
-        config.get<number>('saltWorkFactor')
-      )
     if (country) user.country = country
     if (bio) user.bio = bio
     if (link) user.link = link
@@ -258,18 +267,18 @@ const handleRefreshToken = async (req: Request, res: Response) => {
     refreshToken,
     config.get<string>('refreshTokenSecret'),
     (err, decoded: jwt.JwtPayload) => {
-      if (err || foundUser.username !== decoded.username) {
+      if (err || foundUser._id !== decoded.userId) {
         res.sendStatus(403)
         return
       }
 
       const accessToken = jwt.sign(
-        { username: decoded.username },
+        { userId: decoded.userId },
         config.get<string>('accessTokenSecret'),
         { expiresIn: config.get<string>('accessTokenTtl') }
       )
 
-      res.json({ accessToken, username: decoded.username })
+      res.json({ accessToken })
     }
   )
 }

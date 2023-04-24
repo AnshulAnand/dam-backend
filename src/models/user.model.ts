@@ -3,8 +3,6 @@ import { Schema, model, Document } from 'mongoose'
 export interface UserDocument extends Document {
   name?: string
   username: string
-  email: string
-  password: string
   refreshToken: string
   country?: string
   bio?: string
@@ -17,8 +15,6 @@ const userSchema = new Schema<UserDocument>(
   {
     name: { type: String, default: '' },
     username: { type: String, required: true, unique: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
     refreshToken: { type: String, required: true },
     country: { type: String, default: '' },
     bio: { type: String, default: '' },
