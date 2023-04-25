@@ -1,12 +1,12 @@
 import { Schema, model, Types, Document } from 'mongoose'
 
 export interface LikeDocument extends Document {
-  user: string
+  user: Types.ObjectId
   parent: Types.ObjectId
 }
 
 const likeSchema = new Schema<LikeDocument>({
-  user: { type: String, required: true },
+  user: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
   parent: { type: Schema.Types.ObjectId, required: true, ref: 'Comment' }
 })
 

@@ -12,7 +12,6 @@ import config from 'config'
 // @access Private
 const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const users = await UserModel.find().select('-password').lean()
-
   if (!users?.length) {
     res.status(400).json({ message: 'No Users Found' })
   } else {
@@ -25,9 +24,7 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const getUser = asyncHandler(async (req: Request, res: Response) => {
   const { username } = req.body
-
   const user = await UserModel.findOne({ username }).select('-password').lean()
-
   if (!user) {
     res.status(400).json({ message: 'No User Found' })
   } else {
@@ -155,10 +152,10 @@ const loginUser = asyncHandler(
 // @route  POST /logout
 // @access Private
 const logoutUser = asyncHandler(async (req: Request, res: Response) => {
-  const username = req.user
+  const userId = req.userId
 
-  if (!username) {
-    res.status(400).json({ message: `User ${username} not found` })
+  if (!userId) {
+    res.status(400).json({ message: `User with ID: ${userId} not found` })
     return
   }
 
@@ -199,7 +196,7 @@ const updateUser = asyncHandler(
       return
     }
 
-    const user = await UserModel.findOne({ username: req.user }).exec()
+    const user = await UserModel.findById(req.userId).exec()
 
     if (!user) {
       res.status(400).json({ message: 'User not found' })
@@ -216,7 +213,7 @@ const updateUser = asyncHandler(
 
     await user.save()
 
-    res.json({ message: `${username} updated` })
+    res.json({ message: `User updated` })
   }
 )
 
@@ -224,23 +221,23 @@ const updateUser = asyncHandler(
 // @route  DELETE /users
 // @access Private
 const deleteUser = asyncHandler(async (req: Request, res: Response) => {
-  const username = req.user
+  const user = req.userId
 
-  if (!username) {
-    res.status(400).json({ message: 'Username required' })
+  if (!user) {
+    res.status(400).json({ message: 'User ID required' })
     return
   }
 
-  const user = await UserModel.findOne({ username }).exec()
+  const foundUser = await UserModel.findById(user).exec()
 
-  if (!user) {
+  if (!foundUser) {
     res.status(400).json({ message: 'User not found' })
     return
   }
 
-  await user.deleteOne()
+  await foundUser.deleteOne()
 
-  res.json(`${username} deleted`)
+  res.json(`${foundUser.username} deleted`)
 })
 
 // @desc   Handle refresh token

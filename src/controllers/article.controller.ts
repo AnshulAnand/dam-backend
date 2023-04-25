@@ -24,7 +24,7 @@ const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
 const getArticle = asyncHandler(async (req: Request, res: Response) => {
   const { url } = req.body
 
-  const article = await ArticleModel.findOne({ url }).exec()
+  const article = await ArticleModel.findOne({ url })
 
   if (!article) {
     res.status(400).json({ message: 'No Article Found' })
@@ -41,12 +41,15 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
 // @route  POST /articles/article
 // @access Private
 const likeArticle = asyncHandler(async (req: Request, res: Response) => {
-  const { url } = req.body
+  const { articleId } = req.body
 
-  const liked = await LikeModel.findOne({ user: req.user, article: url }).exec()
+  const liked = await LikeModel.findOne({
+    user: req.userId,
+    article: articleId
+  })
 
   if (!liked) {
-    const article = await ArticleModel.findOne({ url }).exec()
+    const article = await ArticleModel.findById(articleId)
 
     if (!article) {
       res.status(400).json({ message: 'Article Not Found' })
@@ -56,13 +59,13 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
     article.likes += 1
     await article.save()
 
-    const likeObject = { user: req.user, article: url }
+    const likeObject = { user: req.userId, article: articleId }
 
     await LikeModel.create(likeObject)
 
     res.json({ message: 'Like updated successfully' })
   } else {
-    const article = await ArticleModel.findOne({ url }).exec()
+    const article = await ArticleModel.findById(articleId)
 
     if (!article) {
       res.status(400).json({ message: 'Article Not Found' })
@@ -84,13 +87,13 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 const createArticle = asyncHandler(
   async (req: Request<{}, {}, CreateArticleInput['body']>, res: Response) => {
     const { title, body, image } = req.body
-    const username = req.user
+    const userId = req.userId
 
-    const user = await UserModel.findOne({ username })
+    const user = await UserModel.findById(userId)
 
     if (!user) {
       res.status(400)
-      res.json({ message: `User ${username} not found` })
+      res.json({ message: `User with ID: ${userId} not found` })
       return
     }
 
@@ -132,14 +135,14 @@ const createArticle = asyncHandler(
 // @access Private
 const updateArticle = asyncHandler(
   async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
-    const { url, title, body, image } = req.body
+    const { url, title, body, image, articleId } = req.body
 
-    if (!url) {
+    if (!articleId) {
       res.status(400).json({ message: 'All fields are required' })
       return
     }
 
-    const article = await ArticleModel.findOne({ url }).exec()
+    const article = await ArticleModel.findById(articleId)
 
     if (!article) {
       res.status(400).json({ message: 'Article not found' })
@@ -166,14 +169,14 @@ const updateArticle = asyncHandler(
 // @route  DELETE /articles
 // @access Private
 const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
-  const { url } = req.body
+  const { articleId } = req.body
 
-  if (!url) {
-    res.status(400).json({ message: 'URL required' })
+  if (!articleId) {
+    res.status(400).json({ message: 'Article ID required' })
     return
   }
 
-  const article = await ArticleModel.findOne({ url }).exec()
+  const article = await ArticleModel.findById(articleId)
 
   if (!article) {
     res.status(400).json({ message: 'Article not found' })

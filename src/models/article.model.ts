@@ -8,10 +8,7 @@ export interface ArticleDocument extends Document {
   image: string
   views: number
   likes: number
-  comments: {
-    type: typeof Schema.Types.ObjectId
-    ref: string
-  }[]
+  comments: Array<{ type: Types.ObjectId; ref: string }>
   edited: boolean
 }
 

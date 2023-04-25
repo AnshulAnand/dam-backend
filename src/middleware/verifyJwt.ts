@@ -1,12 +1,11 @@
 import { Request, Response, NextFunction } from 'express'
-import UserModel from '../models/user.model'
 import jwt from 'jsonwebtoken'
 import config from 'config'
 
 declare global {
   namespace Express {
     interface Request {
-      user: string
+      userId: string
     }
   }
 }
@@ -24,13 +23,12 @@ const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
   jwt.verify(
     token,
     config.get<string>('accessTokenSecret'),
-    async (err, decoded: jwt.JwtPayload) => {
+    (err, decoded: jwt.JwtPayload) => {
       if (err) {
         res.sendStatus(403) // invalid token
         return
       }
-      const user = await UserModel.findById(decoded.userId)
-      req.user = user.username
+      req.userId = decoded.userId
       next()
     }
   )

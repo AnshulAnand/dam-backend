@@ -21,21 +21,21 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
 // @route  POST /replies/reply
 // @access Private
 const likeReply = asyncHandler(async (req: Request, res: Response) => {
-  const { replyId, parent } = req.body
+  const { replyId, parentCommentId } = req.body
 
-  if (!replyId || !parent) {
+  if (!replyId || !parentCommentId) {
     res.status(400)
     res.json({ message: 'All fields are required' })
     return
   }
 
   const liked = await LikeModel.findOne({
-    user: req.user,
+    user: req.userId,
     _id: replyId
-  }).exec()
+  })
 
   if (!liked) {
-    const reply = await ReplyModel.findById(replyId).exec()
+    const reply = await ReplyModel.findById(replyId)
 
     if (!reply) {
       res.status(400).json({ message: 'Reply Not Found' })
@@ -45,13 +45,13 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
     reply.likes += 1
     await reply.save()
 
-    const likeObject = { user: req.user, parent }
+    const likeObject = { user: req.userId, parent: parentCommentId }
 
     await LikeModel.create(likeObject)
 
     res.json({ message: 'Like updated successfully' })
   } else {
-    const reply = await ReplyModel.findById(replyId).exec()
+    const reply = await ReplyModel.findById(replyId)
 
     if (!reply) {
       res.status(400).json({ message: 'Reply Not Found' })
@@ -72,23 +72,23 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const postReply = asyncHandler(
   async (req: Request<{}, {}, CreateReplyInput['body']>, res: Response) => {
-    const { parent, body } = req.body
+    const { parentCommentId, body } = req.body
 
-    if (!parent || !body) {
+    if (!parentCommentId || !body) {
       res.status(400)
       res.json({ message: 'All fields are required' })
       return
     }
 
-    const comment = await CommentModel.findById(parent)
+    const comment = await CommentModel.findById(parentCommentId)
 
     if (!comment) {
       res.status(400)
-      res.json({ message: 'Article not found' })
+      res.json({ message: 'Parent comment not found' })
       return
     }
 
-    const replyObject = { user: req.user, parent, body }
+    const replyObject = { user: req.userId, parent: parentCommentId, body }
 
     const reply = await CommentModel.create(replyObject)
 
