@@ -22,12 +22,14 @@ import healthcheck from './routes/health-check.routes'
 import userRoutes from './routes/user.routes'
 import articleRoutes from './routes/article.routes'
 import commentRoutes from './routes/comment.routes'
+import replyRoutes from './routes/reply.routes'
 
 // using routes
 app.use('/health-check', healthcheck)
 app.use('/users', userRoutes)
 app.use('/articles', articleRoutes)
 app.use('/comments', commentRoutes)
+app.use('/replies', replyRoutes)
 
 const PORT = config.get<number>('port')
 
