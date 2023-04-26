@@ -3,7 +3,7 @@ import { object, string, TypeOf } from 'zod'
 export const createReplySchema = object({
   body: object({
     body: string({ required_error: 'Body is required' }),
-    parentCommentId: string({ required_error: 'Parent article is required' })
+    parentCommentId: string({ required_error: 'Parent comment is required' })
   })
 })
 

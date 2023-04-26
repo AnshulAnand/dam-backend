@@ -18,7 +18,7 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Like reply
-// @route  POST /replies/reply
+// @route  POST /replies/like
 // @access Private
 const likeReply = asyncHandler(async (req: Request, res: Response) => {
   const { replyId, parentCommentId } = req.body
@@ -90,7 +90,7 @@ const postReply = asyncHandler(
 
     const replyObject = { user: req.userId, parent: parentCommentId, body }
 
-    const reply = await CommentModel.create(replyObject)
+    const reply = await ReplyModel.create(replyObject)
 
     comment.replies.push(reply._id)
 

@@ -18,7 +18,7 @@ const getAllComments = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Like comment
-// @route  POST /comments/comment
+// @route  POST /comments/like
 // @access Private
 const likeComment = asyncHandler(async (req: Request, res: Response) => {
   const { commentId, parentArticle } = req.body

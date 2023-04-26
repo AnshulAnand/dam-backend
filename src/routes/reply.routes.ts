@@ -8,13 +8,13 @@ import ReplyModel from '../models/reply.model'
 
 const router = express.Router()
 
-router.route('/reply').post(verifyJwt, replyController.likeReply)
-
 router
   .route('/')
   .get(paginatedResults(ReplyModel), replyController.getAllreplies)
   .post(verifyJwt, validate(createReplySchema), replyController.postReply)
   .patch(verifyJwt, validate(updateReplySchema), replyController.updateReply)
   .delete(verifyJwt, replyController.deleteReply)
+
+router.post('/like', verifyJwt, replyController.likeReply)
 
 export default router

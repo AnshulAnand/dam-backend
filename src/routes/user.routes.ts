@@ -1,6 +1,10 @@
 import express from 'express'
 import userController from '../controllers/user.controller'
-import { createUserSchema, loginUserSchema } from '../schema/user.schema'
+import {
+  createUserSchema,
+  updateUserSchema,
+  loginUserSchema
+} from '../schema/user.schema'
 import validate from '../middleware/validateResource'
 import verifyJwt from '../middleware/verifyJwt'
 
@@ -9,19 +13,14 @@ const router = express.Router()
 router
   .route('/')
   .get(userController.getAllUsers)
-  .patch(verifyJwt, userController.updateUser)
+  .patch(verifyJwt, validate(updateUserSchema), userController.updateUser)
   .delete(verifyJwt, userController.deleteUser)
 
-router.route('/user').get(userController.getUser)
-
 router
-  .route('/register')
-  .post(validate(createUserSchema), userController.registerUser)
-
-router.route('/login').post(validate(loginUserSchema), userController.loginUser)
-
-router.route('/logout').get(verifyJwt, userController.logoutUser)
-
-router.route('/refresh').get(userController.handleRefreshToken)
+  .get('/:userId', userController.getUser)
+  .post('/register', validate(createUserSchema), userController.registerUser)
+  .post('/login', validate(loginUserSchema), userController.loginUser)
+  .get('/logout', verifyJwt, userController.logoutUser)
+  .get('/refresh', userController.handleRefreshToken)
 
 export default router

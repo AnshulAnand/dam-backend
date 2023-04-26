@@ -19,10 +19,10 @@ const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Get article
-// @route  GET /articles/article
+// @route  GET /articles/:articleId
 // @access Public
 const getArticle = asyncHandler(async (req: Request, res: Response) => {
-  const { url } = req.body
+  const { url } = req.params
 
   const article = await ArticleModel.findOne({ url })
 
@@ -38,7 +38,7 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Like article
-// @route  POST /articles/article
+// @route  POST /articles/like
 // @access Private
 const likeArticle = asyncHandler(async (req: Request, res: Response) => {
   const { articleId } = req.body

@@ -11,8 +11,6 @@ import {
 
 const router = express.Router()
 
-router.route('/comment').post(verifyJwt, commentController.likeComment)
-
 router
   .route('/')
   .get(paginatedResults(CommentModel), commentController.getAllComments)
@@ -23,5 +21,7 @@ router
     commentController.updateComment
   )
   .delete(verifyJwt, commentController.deleteComment)
+
+router.post('/like', verifyJwt, commentController.likeComment)
 
 export default router

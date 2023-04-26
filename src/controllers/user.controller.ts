@@ -2,7 +2,11 @@ import { Request, Response } from 'express'
 import UserModel from '../models/user.model'
 import BasicAuthModel from '../models/basicAuth.model'
 import asyncHandler from 'express-async-handler'
-import { CreateUserInput, LoginUserInput } from '../schema/user.schema'
+import {
+  CreateUserInput,
+  UpdateUserInput,
+  LoginUserInput
+} from '../schema/user.schema'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from 'config'
@@ -20,10 +24,10 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Get user
-// @route  GET /users/user
+// @route  GET /users/:userId
 // @access Private
 const getUser = asyncHandler(async (req: Request, res: Response) => {
-  const { username } = req.body
+  const { username } = req.params
   const user = await UserModel.findOne({ username }).select('-password').lean()
   if (!user) {
     res.status(400).json({ message: 'No User Found' })
@@ -188,7 +192,7 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 // @route  PATCH /users
 // @access Private
 const updateUser = asyncHandler(
-  async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
+  async (req: Request<{}, {}, UpdateUserInput['body']>, res: Response) => {
     const { name, username, country, bio, link, image } = req.body
 
     if (!username) {

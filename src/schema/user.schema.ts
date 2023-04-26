@@ -18,6 +18,17 @@ export const createUserSchema = object({
   })
 })
 
+export const updateUserSchema = object({
+  body: object({
+    name: string({ required_error: 'Name is required' }),
+    username: string({ required_error: 'Username is required' }),
+    country: string().optional(),
+    bio: string().optional(),
+    image: string().optional(),
+    link: string().optional()
+  })
+})
+
 export const loginUserSchema = object({
   body: object({
     password: string({ required_error: 'Password is required' }).min(
@@ -31,4 +42,5 @@ export const loginUserSchema = object({
 })
 
 export type CreateUserInput = TypeOf<typeof createUserSchema>
+export type UpdateUserInput = TypeOf<typeof updateUserSchema>
 export type LoginUserInput = TypeOf<typeof loginUserSchema>

@@ -9,11 +9,6 @@ import ArticleModel from '../models/article.model'
 const router = express.Router()
 
 router
-  .route('/article')
-  .get(articleController.getArticle)
-  .post(verifyJwt, articleController.likeArticle)
-
-router
   .route('/')
   .get(paginatedResults(ArticleModel), articleController.getAllArticles)
   .post(
@@ -23,5 +18,9 @@ router
   )
   .patch(verifyJwt, validate(articleSchema), articleController.updateArticle)
   .delete(verifyJwt, articleController.deleteArticle)
+
+router
+  .get('/:articleId', articleController.getArticle)
+  .post('/like', verifyJwt, articleController.likeArticle)
 
 export default router
