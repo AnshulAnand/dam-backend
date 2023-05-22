@@ -17,10 +17,9 @@ router
   .delete(verifyJwt, userController.deleteUser)
 
 router
-  .get('/:userId', userController.getUser)
   .post('/register', validate(createUserSchema), userController.registerUser)
   .post('/login', validate(loginUserSchema), userController.loginUser)
   .get('/logout', verifyJwt, userController.logoutUser)
-  .get('/refresh', userController.handleRefreshToken)
+  .get('/:userId', userController.getUser)
 
 export default router

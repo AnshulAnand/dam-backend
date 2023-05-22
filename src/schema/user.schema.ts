@@ -20,8 +20,8 @@ export const createUserSchema = object({
 
 export const updateUserSchema = object({
   body: object({
-    name: string({ required_error: 'Name is required' }),
-    username: string({ required_error: 'Username is required' }),
+    name: string().optional(),
+    username: string().optional(),
     country: string().optional(),
     bio: string().optional(),
     image: string().optional(),

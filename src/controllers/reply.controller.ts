@@ -21,18 +21,15 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
 // @route  POST /replies/like
 // @access Private
 const likeReply = asyncHandler(async (req: Request, res: Response) => {
-  const { replyId, parentCommentId } = req.body
+  const { replyId, parentComment } = req.body
 
-  if (!replyId || !parentCommentId) {
+  if (!replyId || !parentComment) {
     res.status(400)
     res.json({ message: 'All fields are required' })
     return
   }
 
-  const liked = await LikeModel.findOne({
-    user: req.userId,
-    _id: replyId
-  })
+  const liked = await LikeModel.findById(replyId)
 
   if (!liked) {
     const reply = await ReplyModel.findById(replyId)
@@ -45,7 +42,7 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
     reply.likes += 1
     await reply.save()
 
-    const likeObject = { user: req.userId, parent: parentCommentId }
+    const likeObject = { user: req.userId, parentComment }
 
     await LikeModel.create(likeObject)
 
@@ -72,31 +69,19 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const postReply = asyncHandler(
   async (req: Request<{}, {}, CreateReplyInput['body']>, res: Response) => {
-    const { parentCommentId, body } = req.body
+    const { parentComment, parentArticle, body } = req.body
 
-    if (!parentCommentId || !body) {
+    if (!parentComment || !body || !parentArticle) {
       res.status(400)
       res.json({ message: 'All fields are required' })
       return
     }
 
-    const comment = await CommentModel.findById(parentCommentId)
-
-    if (!comment) {
-      res.status(400)
-      res.json({ message: 'Parent comment not found' })
-      return
-    }
-
-    const replyObject = { user: req.userId, parent: parentCommentId, body }
+    const replyObject = { user: req.userId, parentComment, parentArticle, body }
 
     const reply = await ReplyModel.create(replyObject)
 
-    comment.replies.push(reply._id)
-
-    await comment.save()
-
-    if (comment) {
+    if (reply) {
       res.status(201)
       res.json({ message: 'Reply added successfully' })
     } else {

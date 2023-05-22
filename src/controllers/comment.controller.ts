@@ -29,10 +29,7 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const liked = await LikeModel.findOne({
-    user: req.userId,
-    _id: commentId
-  })
+  const liked = await LikeModel.findById(commentId)
 
   if (!liked) {
     const comment = await CommentModel.findById(commentId).exec()
@@ -72,29 +69,17 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const postComment = asyncHandler(
   async (req: Request<{}, {}, CreateCommentInput['body']>, res: Response) => {
-    const { parentArticleId, body } = req.body
+    const { parentArticle, body } = req.body
 
-    if (!parentArticleId || !body) {
+    if (!parentArticle || !body) {
       res.status(400)
       res.json({ message: 'All fields are required' })
       return
     }
 
-    const article = await ArticleModel.findById(parentArticleId)
-
-    if (!article) {
-      res.status(400)
-      res.json({ message: 'Article not found' })
-      return
-    }
-
-    const commentObject = { user: req.userId, parent: parentArticleId, body }
+    const commentObject = { user: req.userId, parentArticle, body }
 
     const comment = await CommentModel.create(commentObject)
-
-    article.comments.push(comment._id)
-
-    await article.save()
 
     if (comment) {
       res.status(201)
@@ -142,16 +127,16 @@ const updateComment = asyncHandler(
 // @route  DELETE /comments
 // @access Private
 const deleteComment = asyncHandler(async (req: Request, res: Response) => {
-  const { parentArticleId }: { parentArticleId: string } = req.body
+  const { parentArticle }: { parentArticle: string } = req.body
 
-  if (!parentArticleId) {
+  if (!parentArticle) {
     res.status(400)
     res.json({ message: 'Comment ID required' })
     return
   }
 
   const comment = await CommentModel.findOne({
-    parent: parentArticleId,
+    parentArticle,
     user: req.userId
   })
 

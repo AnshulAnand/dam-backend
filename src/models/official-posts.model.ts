@@ -1,9 +1,10 @@
 import { Schema, model, Types, Document } from 'mongoose'
 
-export interface ArticleDocument extends Document {
+export interface OfficialPostDocument extends Document {
   user: Types.ObjectId
   title: string
   url: string
+  description: string
   body: string
   image: string
   views: number
@@ -11,11 +12,12 @@ export interface ArticleDocument extends Document {
   edited: boolean
 }
 
-const articleSchema = new Schema<ArticleDocument>(
+const officialPostSchema = new Schema<OfficialPostDocument>(
   {
     user: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
     title: { type: String, required: true },
     url: { type: String, required: true, unique: true },
+    description: { type: String, required: true },
     body: { type: String, required: true },
     image: { type: String, default: '' },
     views: { type: Number, default: 0 },
@@ -25,6 +27,9 @@ const articleSchema = new Schema<ArticleDocument>(
   { timestamps: true }
 )
 
-const ArticleModel = model<ArticleDocument>('Article', articleSchema)
+const OfficialPostModel = model<OfficialPostDocument>(
+  'OfficialPost',
+  officialPostSchema
+)
 
-export default ArticleModel
+export default OfficialPostModel

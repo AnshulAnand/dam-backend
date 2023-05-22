@@ -10,22 +10,22 @@ declare global {
   }
 }
 
-const verifyJwt = (req: Request, res: Response, next: NextFunction) => {
-  const authHeader = req.headers['authorization']
+const verifyJwt = async (req: Request, res: Response, next: NextFunction) => {
+  const cookies = req.cookies
 
-  if (!authHeader) {
+  if (!cookies?.jwt) {
     res.sendStatus(401)
     return
   }
 
-  const token = authHeader.split(' ')[1]
+  const JWT: string = cookies.jwt
 
   jwt.verify(
-    token,
-    config.get<string>('accessTokenSecret'),
+    JWT,
+    config.get<string>('jwtSecret'),
     (err, decoded: jwt.JwtPayload) => {
       if (err) {
-        res.sendStatus(403) // invalid token
+        res.sendStatus(403)
         return
       }
       req.userId = decoded.userId

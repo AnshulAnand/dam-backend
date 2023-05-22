@@ -1,22 +1,24 @@
 import { object, string, TypeOf } from 'zod'
 
-export const createArticleSchema = object({
+export const createPostSchema = object({
   body: object({
     title: string({ required_error: 'Title is required' }),
+    description: string({ required_error: 'Description is required' }),
     body: string({ required_error: 'Body is required' }),
     image: string().optional()
   })
 })
 
-export const articleSchema = object({
+export const postSchema = object({
   body: object({
-    articleId: string({ required_error: 'Article ID is required' }),
+    postId: string({ required_error: 'Post ID is required' }),
     title: string().optional(),
     url: string().optional(),
+    description: string().optional(),
     body: string().optional(),
     image: string().optional()
   })
 })
 
-export type CreateArticleInput = TypeOf<typeof createArticleSchema>
-export type ArticleInput = TypeOf<typeof articleSchema>
+export type CreatePostInput = TypeOf<typeof createPostSchema>
+export type PostInput = TypeOf<typeof postSchema>

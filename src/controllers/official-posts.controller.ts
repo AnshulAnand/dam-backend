@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
-import ArticleModel from '../models/article.model'
+import OfficialPostModel from '../models/official-posts.model'
 import UserModel from '../models/user.model'
 import LikeModel from '../models/articleLikes.model'
 import asyncHandler from 'express-async-handler'
-import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
+import { CreatePostInput, PostInput } from '../schema/official-posts.schema'
 const nanoid = import('nanoid')
 
 // @desc   Get all articles
@@ -24,7 +24,7 @@ const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
 const getArticle = asyncHandler(async (req: Request, res: Response) => {
   const { url } = req.params
 
-  const article = await ArticleModel.findOne({ url })
+  const article = await OfficialPostModel.findOne({ url })
 
   if (!article) {
     res.status(400).json({ message: 'No Article Found' })
@@ -49,7 +49,7 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
   })
 
   if (!liked) {
-    const article = await ArticleModel.findById(articleId)
+    const article = await OfficialPostModel.findById(articleId)
 
     if (!article) {
       res.status(400).json({ message: 'Article Not Found' })
@@ -65,7 +65,7 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 
     res.json({ message: 'Like updated successfully' })
   } else {
-    const article = await ArticleModel.findById(articleId)
+    const article = await OfficialPostModel.findById(articleId)
 
     if (!article) {
       res.status(400).json({ message: 'Article Not Found' })
@@ -85,8 +85,8 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 // @route  POST /articles
 // @access Private
 const createArticle = asyncHandler(
-  async (req: Request<{}, {}, CreateArticleInput['body']>, res: Response) => {
-    const { title, body, image } = req.body
+  async (req: Request<{}, {}, CreatePostInput['body']>, res: Response) => {
+    const { title, description, body, image } = req.body
     const userId = req.userId
 
     const user = await UserModel.findById(userId)
@@ -110,15 +110,22 @@ const createArticle = asyncHandler(
       user: string
       title: string
       url: string
+      description: string
       body: string
       image?: string
     }
 
-    const articleObject: ArticleObject = { user: user.id, title, url, body }
+    const articleObject: ArticleObject = {
+      user: user.id,
+      title,
+      url,
+      description,
+      body
+    }
 
     if (image) articleObject.image = image
 
-    const newArticle = await ArticleModel.create(articleObject)
+    const newArticle = await OfficialPostModel.create(articleObject)
 
     if (newArticle) {
       res.status(201).json({ message: `Post created successfully` })
@@ -134,15 +141,15 @@ const createArticle = asyncHandler(
 // @route  PATCH /articles
 // @access Private
 const updateArticle = asyncHandler(
-  async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
-    const { title, body, image, articleId } = req.body
+  async (req: Request<{}, {}, PostInput['body']>, res: Response) => {
+    const { title, description, body, image, postId } = req.body
 
-    if (!articleId) {
+    if (!postId) {
       res.status(400).json({ message: 'All fields are required' })
       return
     }
 
-    const article = await ArticleModel.findById(articleId)
+    const article = await OfficialPostModel.findById(postId)
 
     if (!article) {
       res.status(400).json({ message: 'Article not found' })
@@ -157,6 +164,7 @@ const updateArticle = asyncHandler(
 
     if (body) article.body = body
     if (image) article.image = image
+    if (description) article.description = description
     if (article.edited === false) article.edited = true
 
     await article.save()
@@ -176,7 +184,7 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const article = await ArticleModel.findById(articleId)
+  const article = await OfficialPostModel.findById(articleId)
 
   if (!article) {
     res.status(400).json({ message: 'Article not found' })

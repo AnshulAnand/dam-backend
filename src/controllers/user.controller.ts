@@ -79,28 +79,20 @@ const registerUser = asyncHandler(
 
     const newBasicAuth = await BasicAuthModel.create(basicAuthObject)
 
-    const accessToken = jwt.sign(
+    const JWT = jwt.sign(
       { userId: newUser._id },
-      config.get<string>('accessTokenSecret'),
-      { expiresIn: config.get<string>('accessTokenTtl') }
+      config.get<string>('jwtSecret'),
+      { expiresIn: config.get<string>('jwtTtl') }
     )
-
-    const refreshToken = jwt.sign(
-      { userId: newUser._id },
-      config.get<string>('refreshTokenSecret'),
-      { expiresIn: config.get<string>('refreshTokenTtl') }
-    )
-
-    newUser.refreshToken = refreshToken
 
     await newUser.save()
 
     if (newUser && newBasicAuth) {
-      res.cookie('jwt', refreshToken, {
+      res.cookie('jwt', JWT, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json({ accessToken })
+      res.json({ message: 'Registered Successfully' })
     } else {
       res
         .status(400)
@@ -126,26 +118,19 @@ const loginUser = asyncHandler(
     if (match) {
       const user = await UserModel.findById(match.user)
 
-      const accessToken = jwt.sign(
+      const JWT = jwt.sign(
         { userId: user._id },
-        config.get<string>('accessTokenSecret'),
-        { expiresIn: config.get<string>('accessTokenTtl') }
+        config.get<string>('jwtSecret'),
+        { expiresIn: config.get<string>('jwtTtl') }
       )
 
-      const refreshToken = jwt.sign(
-        { userId: user._id },
-        config.get<string>('refreshTokenSecret'),
-        { expiresIn: config.get<string>('refreshTokenTtl') }
-      )
-
-      user.refreshToken = refreshToken
       await user.save()
 
-      res.cookie('jwt', refreshToken, {
+      res.cookie('jwt', JWT, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
-      res.json({ accessToken })
+      res.json({ message: 'Logged in successfully' })
     } else {
       res.status(401).json({ message: 'No user found' })
     }
@@ -153,7 +138,7 @@ const loginUser = asyncHandler(
 )
 
 // @desc   Logout user
-// @route  POST /logout
+// @route  GET /logout
 // @access Private
 const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId
@@ -170,19 +155,13 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const refreshToken = cookies.jwt
-
-  const foundUser = await UserModel.findOne({ refreshToken }).exec()
+  const foundUser = await UserModel.findById(userId).exec()
 
   if (!foundUser) {
     res.clearCookie('jwt', { httpOnly: true })
     res.sendStatus(204)
     return
   }
-
-  foundUser.refreshToken = 'no-token'
-
-  await foundUser.save()
 
   res.clearCookie('jwt', { httpOnly: true })
   res.sendStatus(204)
@@ -195,11 +174,6 @@ const updateUser = asyncHandler(
   async (req: Request<{}, {}, UpdateUserInput['body']>, res: Response) => {
     const { name, username, country, bio, link, image } = req.body
 
-    if (!username) {
-      res.status(400).json({ message: 'All fields are required' })
-      return
-    }
-
     const user = await UserModel.findById(req.userId).exec()
 
     if (!user) {
@@ -207,9 +181,8 @@ const updateUser = asyncHandler(
       return
     }
 
-    user.username = username
-
-    if (user) user.name = name
+    if (username) user.username = username
+    if (name) user.name = name
     if (country) user.country = country
     if (bio) user.bio = bio
     if (link) user.link = link
@@ -244,46 +217,6 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   res.json(`${foundUser.username} deleted`)
 })
 
-// @desc   Handle refresh token
-// @route  GET /users/refresh
-// @access Private
-const handleRefreshToken = async (req: Request, res: Response) => {
-  const cookies = req.cookies
-
-  if (!cookies?.jwt) {
-    res.sendStatus(401)
-    return
-  }
-
-  const refreshToken: string = cookies.jwt
-
-  const foundUser = await UserModel.findOne({ refreshToken }).exec()
-
-  if (!foundUser) {
-    res.sendStatus(403)
-    return
-  }
-
-  jwt.verify(
-    refreshToken,
-    config.get<string>('refreshTokenSecret'),
-    (err, decoded: jwt.JwtPayload) => {
-      if (err || foundUser._id !== decoded.userId) {
-        res.sendStatus(403)
-        return
-      }
-
-      const accessToken = jwt.sign(
-        { userId: decoded.userId },
-        config.get<string>('accessTokenSecret'),
-        { expiresIn: config.get<string>('accessTokenTtl') }
-      )
-
-      res.json({ accessToken })
-    }
-  )
-}
-
 export default {
   getAllUsers,
   getUser,
@@ -291,6 +224,5 @@ export default {
   loginUser,
   logoutUser,
   updateUser,
-  deleteUser,
-  handleRefreshToken
+  deleteUser
 }
