@@ -194,7 +194,7 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
 
   await article.deleteOne()
 
-  res.json('Post deleted')
+  res.json({ message: 'Post deleted' })
 })
 
 // @desc   Search article
@@ -213,7 +213,7 @@ const searchArticle = asyncHandler(async (req: Request, res: Response) => {
     .exec()
 
   if (articles.length < 1) {
-    res.status(400).json({ message: 'No articles found' })
+    res.status(400).json({ message: 'No more articles' })
     return
   }
 

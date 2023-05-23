@@ -7,7 +7,7 @@ import { CreatePostInput, PostInput } from '../../schema/official-posts.schema'
 const nanoid = import('nanoid')
 
 // @desc   Get all articles
-// @route  GET /articles
+// @route  GET /official-posts
 // @access Public
 const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
   const results = res.paginatedResults
@@ -19,7 +19,7 @@ const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Get article
-// @route  GET /articles/:url
+// @route  GET /official-posts/:url
 // @access Public
 const getArticle = asyncHandler(async (req: Request, res: Response) => {
   const { url } = req.params
@@ -38,7 +38,7 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Like article
-// @route  POST /articles/like
+// @route  POST /official-posts/like
 // @access Private
 const likeArticle = asyncHandler(async (req: Request, res: Response) => {
   const { articleId } = req.body
@@ -82,7 +82,7 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Create new article
-// @route  POST /articles
+// @route  POST /official-posts
 // @access Private
 const createArticle = asyncHandler(
   async (req: Request<{}, {}, CreatePostInput['body']>, res: Response) => {
@@ -138,7 +138,7 @@ const createArticle = asyncHandler(
 )
 
 // @desc   Update article
-// @route  PATCH /articles
+// @route  PATCH /official-posts
 // @access Private
 const updateArticle = asyncHandler(
   async (req: Request<{}, {}, PostInput['body']>, res: Response) => {
@@ -174,7 +174,7 @@ const updateArticle = asyncHandler(
 )
 
 // @desc   Delete article
-// @route  DELETE /articles
+// @route  DELETE /official-posts
 // @access Private
 const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
   const { articleId } = req.body
@@ -193,7 +193,7 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
 
   await article.deleteOne()
 
-  res.json('Post deleted')
+  res.json({ message: 'Post deleted' })
 })
 
 export default {

@@ -5,7 +5,7 @@ import { CreateReplyInput, UpdateReplyInput } from '../../schema/reply.schema'
 import asyncHandler from 'express-async-handler'
 
 // @desc   Get all replies
-// @route  GET /replies
+// @route  GET /official-posts/replies
 // @access Public
 const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
   const results = res.paginatedResults
@@ -17,7 +17,7 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Like reply
-// @route  POST /replies/like
+// @route  POST /official-posts/replies/like
 // @access Private
 const likeReply = asyncHandler(async (req: Request, res: Response) => {
   const { replyId, parentComment } = req.body
@@ -64,7 +64,7 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Post reply
-// @route  POST /replies
+// @route  POST /official-posts/replies
 // @access Private
 const postReply = asyncHandler(
   async (req: Request<{}, {}, CreateReplyInput['body']>, res: Response) => {
@@ -91,7 +91,7 @@ const postReply = asyncHandler(
 )
 
 // @desc   Update reply
-// @route  PATCH /replies
+// @route  PATCH /official-posts/replies
 // @access Private
 const updateReply = asyncHandler(
   async (req: Request<{}, {}, UpdateReplyInput['body']>, res: Response) => {
@@ -123,7 +123,7 @@ const updateReply = asyncHandler(
 )
 
 // @desc   Delete reply
-// @route  DELETE /replies
+// @route  DELETE /official-posts/replies
 // @access Private
 const deleteReply = asyncHandler(async (req: Request, res: Response) => {
   const { replyId } = req.body

@@ -8,7 +8,7 @@ import {
 import asyncHandler from 'express-async-handler'
 
 // @desc   Get all comments
-// @route  GET /comments
+// @route  GET /official-posts/comments
 // @access Public
 const getAllComments = asyncHandler(async (req: Request, res: Response) => {
   const results = res.paginatedResults
@@ -19,8 +19,23 @@ const getAllComments = asyncHandler(async (req: Request, res: Response) => {
   res.json(results)
 })
 
+// @desc   GET user comments
+// @route  GET /official-posts/comments/:userId
+// @access Private
+const getUserComment = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.userId
+  const comments = await CommentModel.find({ user: userId })
+
+  if (comments.length < 1) {
+    res.json({ message: 'No comments found ' })
+    return
+  }
+
+  res.json(comments)
+})
+
 // @desc   Like comment
-// @route  POST /comments/like
+// @route  POST /official-posts/comments/like
 // @access Private
 const likeComment = asyncHandler(async (req: Request, res: Response) => {
   const { commentId, parentArticle } = req.body
@@ -67,7 +82,7 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Post comment
-// @route  POST /comments
+// @route  POST /official-posts/comments
 // @access Private
 const postComment = asyncHandler(
   async (req: Request<{}, {}, CreateCommentInput['body']>, res: Response) => {
@@ -94,7 +109,7 @@ const postComment = asyncHandler(
 )
 
 // @desc   Update comment
-// @route  PATCH /comments
+// @route  PATCH /official-posts/comments
 // @access Private
 const updateComment = asyncHandler(
   async (req: Request<{}, {}, UpdateCommentInput['body']>, res: Response) => {
@@ -126,7 +141,7 @@ const updateComment = asyncHandler(
 )
 
 // @desc   Delete comment
-// @route  DELETE /comments
+// @route  DELETE /official-posts/comments
 // @access Private
 const deleteComment = asyncHandler(async (req: Request, res: Response) => {
   const { parentArticle }: { parentArticle: string } = req.body
@@ -154,6 +169,7 @@ const deleteComment = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export default {
+  getUserComment,
   getAllComments,
   likeComment,
   postComment,

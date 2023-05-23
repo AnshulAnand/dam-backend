@@ -22,6 +22,8 @@ router
   )
   .delete(verifyJwt, commentController.deleteComment)
 
-router.post('/like', verifyJwt, commentController.likeComment)
+router
+  .get('/comments/:userId', verifyJwt, commentController.getUserComment)
+  .post('/like', verifyJwt, commentController.likeComment)
 
 export default router

@@ -16,6 +16,21 @@ const getAllComments = asyncHandler(async (req: Request, res: Response) => {
   res.json(results)
 })
 
+// @desc   GET user comments
+// @route  GET /comments/:userId
+// @access Private
+const getUserComment = asyncHandler(async (req: Request, res: Response) => {
+  const userId = req.userId
+  const comments = await CommentModel.find({ user: userId })
+
+  if (comments.length < 1) {
+    res.json({ message: 'No comments found ' })
+    return
+  }
+
+  res.json(comments)
+})
+
 // @desc   Like comment
 // @route  POST /comments/like
 // @access Private
@@ -151,6 +166,7 @@ const deleteComment = asyncHandler(async (req: Request, res: Response) => {
 })
 
 export default {
+  getUserComment,
   getAllComments,
   likeComment,
   postComment,
