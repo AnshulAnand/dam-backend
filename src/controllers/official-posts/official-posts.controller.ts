@@ -1,9 +1,9 @@
 import { Request, Response } from 'express'
-import OfficialPostModel from '../models/official-posts.model'
-import UserModel from '../models/user.model'
-import LikeModel from '../models/articleLikes.model'
+import OfficialPostModel from '../../models/official-posts/official-posts.model'
+import UserModel from '../../models/user.model'
+import LikeModel from '../../models/official-posts/official-posts.likes.model'
 import asyncHandler from 'express-async-handler'
-import { CreatePostInput, PostInput } from '../schema/official-posts.schema'
+import { CreatePostInput, PostInput } from '../../schema/official-posts.schema'
 const nanoid = import('nanoid')
 
 // @desc   Get all articles

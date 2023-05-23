@@ -1,10 +1,10 @@
 import express from 'express'
-import validate from '../middleware/validateResource'
-import verifyJwt from '../middleware/verifyJwt'
-import paginatedResults from '../middleware/paginatedResults'
-import { createReplySchema, updateReplySchema } from '../schema/reply.schema'
-import replyController from '../controllers/reply.controller'
-import ReplyModel from '../models/replies/reply.model'
+import validate from '../../middleware/validateResource'
+import verifyJwt from '../../middleware/verifyJwt'
+import paginatedResults from '../../middleware/paginatedResults'
+import { createReplySchema, updateReplySchema } from '../../schema/reply.schema'
+import replyController from '../../controllers/official-posts/official-posts.replies.controller'
+import ReplyModel from '../../models/official-posts/official-posts.replies.model'
 
 const router = express.Router()
 

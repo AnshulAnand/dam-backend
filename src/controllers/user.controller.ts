@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import UserModel from '../models/user.model'
-import BasicAuthModel from '../models/basicAuth.model'
+import BasicAuthModel from '../models/auth/basicAuth.model'
 import asyncHandler from 'express-async-handler'
 import {
   CreateUserInput,

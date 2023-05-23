@@ -1,10 +1,13 @@
 import express from 'express'
-import validate from '../middleware/validateResource'
-import verifyJwt from '../middleware/verifyJwt'
-import paginatedResults from '../middleware/paginatedResults'
-import OfficialPostModel from '../models/official-posts.model'
-import officialPostsController from '../controllers/official-posts.controller'
-import { createPostSchema, postSchema } from '../schema/official-posts.schema'
+import validate from '../../middleware/validateResource'
+import verifyJwt from '../../middleware/verifyJwt'
+import paginatedResults from '../../middleware/paginatedResults'
+import OfficialPostModel from '../../models/official-posts/official-posts.model'
+import officialPostsController from '../../controllers/official-posts/official-posts.controller'
+import {
+  createPostSchema,
+  postSchema
+} from '../../schema/official-posts.schema'
 
 const router = express.Router()
 

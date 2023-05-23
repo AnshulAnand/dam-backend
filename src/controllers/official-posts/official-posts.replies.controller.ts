@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import ReplyModel from '../models/replies/reply.model'
-import LikeModel from '../models/replies/reply.likes.model'
-import { CreateReplyInput, UpdateReplyInput } from '../schema/reply.schema'
+import ReplyModel from '../../models/official-posts/official-posts.replies.model'
+import LikeModel from '../../models/official-posts/official-posts.replies.likes.model'
+import { CreateReplyInput, UpdateReplyInput } from '../../schema/reply.schema'
 import asyncHandler from 'express-async-handler'
 
 // @desc   Get all replies

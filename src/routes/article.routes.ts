@@ -4,7 +4,7 @@ import { createArticleSchema, articleSchema } from '../schema/article.schema'
 import validate from '../middleware/validateResource'
 import verifyJwt from '../middleware/verifyJwt'
 import paginatedResults from '../middleware/paginatedResults'
-import ArticleModel from '../models/article.model'
+import ArticleModel from '../models/articles/article.model'
 
 const router = express.Router()
 
@@ -22,5 +22,6 @@ router
 router
   .get('/:url', articleController.getArticle)
   .post('/like', verifyJwt, articleController.likeArticle)
+  .post('/search', articleController.searchArticle)
 
 export default router

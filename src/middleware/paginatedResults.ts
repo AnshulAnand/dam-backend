@@ -40,7 +40,12 @@ function paginatedResults(model) {
         }
       }
 
-      results.results = await model.find().limit(limit).skip(startIndex).exec()
+      results.results = await model
+        .find()
+        .sort({ _id: -1 })
+        .limit(limit)
+        .skip(startIndex)
+        .exec()
 
       res.paginatedResults = results
       next()

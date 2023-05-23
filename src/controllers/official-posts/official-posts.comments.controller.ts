@@ -1,7 +1,10 @@
 import { Request, Response } from 'express'
-import CommentModel from '../models/comments/comment.model'
-import LikeModel from '../models/comments/comment.likes.model'
-import { CreateCommentInput, UpdateCommentInput } from '../schema/comment.shema'
+import CommentModel from '../../models/official-posts/official-posts.comments.model'
+import LikeModel from '../../models/official-posts/official-posts.comment.likes.model'
+import {
+  CreateCommentInput,
+  UpdateCommentInput
+} from '../../schema/comment.shema'
 import asyncHandler from 'express-async-handler'
 
 // @desc   Get all comments

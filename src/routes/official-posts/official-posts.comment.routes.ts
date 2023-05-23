@@ -1,13 +1,13 @@
 import express from 'express'
-import validate from '../middleware/validateResource'
-import verifyJwt from '../middleware/verifyJwt'
-import paginatedResults from '../middleware/paginatedResults'
-import commentController from '../controllers/comment.controller'
-import CommentModel from '../models/comments/comment.model'
+import validate from '../../middleware/validateResource'
+import verifyJwt from '../../middleware/verifyJwt'
+import paginatedResults from '../../middleware/paginatedResults'
+import commentController from '../../controllers/official-posts/official-posts.comments.controller'
+import CommentModel from '../../models/official-posts/official-posts.comments.model'
 import {
   createCommentSchema,
   updateCommentSchema
-} from '../schema/comment.shema'
+} from '../../schema/comment.shema'
 
 const router = express.Router()
 

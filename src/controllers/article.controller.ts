@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
-import ArticleModel from '../models/article.model'
+import ArticleModel from '../models/articles/article.model'
 import UserModel from '../models/user.model'
-import LikeModel from '../models/articleLikes.model'
+import LikeModel from '../models/articles/article.likes.model'
 import asyncHandler from 'express-async-handler'
 import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
 const nanoid = import('nanoid')
@@ -86,7 +86,8 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const createArticle = asyncHandler(
   async (req: Request<{}, {}, CreateArticleInput['body']>, res: Response) => {
-    const { title, body, image } = req.body
+    const { title, tags, body, image } = req.body
+
     const userId = req.userId
 
     const user = await UserModel.findById(userId)
@@ -110,11 +111,18 @@ const createArticle = asyncHandler(
       user: string
       title: string
       url: string
+      tags: Array<string>
       body: string
       image?: string
     }
 
-    const articleObject: ArticleObject = { user: user.id, title, url, body }
+    const articleObject: ArticleObject = {
+      user: user.id,
+      title,
+      tags,
+      url,
+      body
+    }
 
     if (image) articleObject.image = image
 
@@ -135,7 +143,7 @@ const createArticle = asyncHandler(
 // @access Private
 const updateArticle = asyncHandler(
   async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
-    const { title, body, image, articleId } = req.body
+    const { title, tags, body, image, articleId } = req.body
 
     if (!articleId) {
       res.status(400).json({ message: 'All fields are required' })
@@ -155,6 +163,7 @@ const updateArticle = asyncHandler(
       article.url = title.replace(/ /g, '-') + '-' + nanoId()
     }
 
+    if (tags) article.tags = tags
     if (body) article.body = body
     if (image) article.image = image
     if (article.edited === false) article.edited = true
@@ -188,11 +197,35 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
   res.json('Post deleted')
 })
 
+// @desc   Search article
+// @route  POST /articles/search
+// @access Public
+const searchArticle = asyncHandler(async (req: Request, res: Response) => {
+  const { searchText } = req.body
+
+  const articles = await ArticleModel.find({
+    $or: [
+      { tags: { $regex: searchText, $options: 'i' } },
+      { title: { $regex: searchText, $options: 'i' } }
+    ]
+  })
+    .sort({ _id: -1 })
+    .exec()
+
+  if (articles.length < 1) {
+    res.status(400).json({ message: 'No articles found' })
+    return
+  }
+
+  res.json(articles)
+})
+
 export default {
   getArticle,
   likeArticle,
   getAllArticles,
   createArticle,
   updateArticle,
-  deleteArticle
+  deleteArticle,
+  searchArticle
 }

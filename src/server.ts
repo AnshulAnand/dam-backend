@@ -21,7 +21,7 @@ app.use(cookieParser())
 import healthcheck from './routes/health-check.routes'
 import userRoutes from './routes/user.routes'
 import articleRoutes from './routes/article.routes'
-import officialPostsRoutes from './routes/official-posts.routes'
+import officialPostsRoutes from './routes/official-posts/official-posts.routes'
 import commentRoutes from './routes/comment.routes'
 import replyRoutes from './routes/reply.routes'
 
