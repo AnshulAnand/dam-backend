@@ -4,6 +4,7 @@ export const createArticleSchema = object({
   body: object({
     title: string({ required_error: 'Title is required' }),
     tags: array(string()).optional(),
+    description: string().optional(),
     body: string({ required_error: 'Body is required' }),
     image: string().optional()
   })
@@ -15,6 +16,7 @@ export const articleSchema = object({
     title: string().optional(),
     url: string().optional(),
     tags: array(string()).optional(),
+    description: string().optional(),
     body: string().optional(),
     image: string().optional()
   })

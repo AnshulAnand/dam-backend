@@ -5,6 +5,7 @@ export interface ArticleDocument extends Document {
   title: string
   url: string
   tags: Array<string>
+  description: string
   body: string
   image: string
   views: number
@@ -18,6 +19,7 @@ const articleSchema = new Schema<ArticleDocument>(
     title: { type: String, required: true },
     url: { type: String, required: true, unique: true },
     tags: [{ type: String }],
+    description: { type: String },
     body: { type: String, required: true },
     image: { type: String, default: '' },
     views: { type: Number, default: 0 },

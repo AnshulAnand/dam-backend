@@ -86,7 +86,7 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const createArticle = asyncHandler(
   async (req: Request<{}, {}, CreateArticleInput['body']>, res: Response) => {
-    const { title, tags, body, image } = req.body
+    const { title, tags, description, body, image } = req.body
 
     const userId = req.userId
 
@@ -111,7 +111,8 @@ const createArticle = asyncHandler(
       user: string
       title: string
       url: string
-      tags: Array<string>
+      tags?: Array<string>
+      description?: string
       body: string
       image?: string
     }
@@ -121,6 +122,7 @@ const createArticle = asyncHandler(
       title,
       tags,
       url,
+      description,
       body
     }
 
@@ -143,7 +145,7 @@ const createArticle = asyncHandler(
 // @access Private
 const updateArticle = asyncHandler(
   async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
-    const { title, tags, body, image, articleId } = req.body
+    const { title, tags, description, body, image, articleId } = req.body
 
     if (!articleId) {
       res.status(400).json({ message: 'All fields are required' })
@@ -164,6 +166,7 @@ const updateArticle = asyncHandler(
     }
 
     if (tags) article.tags = tags
+    if (description) article.description = description
     if (body) article.body = body
     if (image) article.image = image
     if (article.edited === false) article.edited = true
