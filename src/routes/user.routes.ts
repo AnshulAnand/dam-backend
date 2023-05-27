@@ -20,6 +20,8 @@ router
   .post('/register', validate(createUserSchema), userController.registerUser)
   .post('/login', validate(loginUserSchema), userController.loginUser)
   .get('/logout', verifyJwt, userController.logoutUser)
-  .get('/:userId', userController.getUser)
+  .get('/username/:username', userController.getUserByUsername)
+  .get('/id/:userId', userController.getUserById)
+  .get('/current', userController.getCurrentUser)
 
 export default router

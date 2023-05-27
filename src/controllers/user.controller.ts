@@ -23,12 +23,37 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   }
 })
 
-// @desc   Get user
-// @route  GET /users/:userId
+// @desc   Get current user
+// @route  GET /users/current
 // @access Private
-const getUser = asyncHandler(async (req: Request, res: Response) => {
+const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
+  const user = await UserModel.findById(req.userId).select('-password').lean()
+  if (!user) {
+    res.status(400).json({ message: 'No User Found' })
+  } else {
+    res.json(user)
+  }
+})
+
+// @desc   Get user by username
+// @route  GET /users/username/:username
+// @access Public
+const getUserByUsername = asyncHandler(async (req: Request, res: Response) => {
   const { username } = req.params
   const user = await UserModel.findOne({ username }).select('-password').lean()
+  if (!user) {
+    res.status(400).json({ message: 'No User Found' })
+  } else {
+    res.json(user)
+  }
+})
+
+// @desc   Get user by id
+// @route  GET /users/id/:userId
+// @access Public
+const getUserById = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params
+  const user = await UserModel.findById(userId).select('-password').lean()
   if (!user) {
     res.status(400).json({ message: 'No User Found' })
   } else {
@@ -219,7 +244,9 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
 export default {
   getAllUsers,
-  getUser,
+  getCurrentUser,
+  getUserByUsername,
+  getUserById,
   registerUser,
   loginUser,
   logoutUser,
