@@ -92,7 +92,7 @@ const registerUser = asyncHandler(
       config.get<number>('saltWorkFactor')
     )
 
-    const userObject = { name, username, refreshToken: 'no-token' }
+    const userObject = { name, username }
 
     const newUser = await UserModel.create(userObject)
 
@@ -110,11 +110,13 @@ const registerUser = asyncHandler(
       { expiresIn: config.get<string>('jwtTtl') }
     )
 
-    await newUser.save()
+    // await newUser.save()
 
     if (newUser && newBasicAuth) {
       res.cookie('jwt', JWT, {
         httpOnly: true,
+        sameSite: 'none',
+        secure: true,
         maxAge: 24 * 60 * 60 * 1000
       })
       res.json({ message: 'Registered Successfully' })

@@ -1,9 +1,7 @@
 import express from 'express'
 import validate from '../middleware/validateResource'
 import verifyJwt from '../middleware/verifyJwt'
-import paginatedResults from '../middleware/paginatedResults'
 import commentController from '../controllers/comment.controller'
-import CommentModel from '../models/comments/comment.model'
 import {
   createCommentSchema,
   updateCommentSchema
@@ -13,7 +11,7 @@ const router = express.Router()
 
 router
   .route('/')
-  .get(paginatedResults(CommentModel), commentController.getAllComments)
+  .get(commentController.getAllComments)
   .post(verifyJwt, validate(createCommentSchema), commentController.postComment)
   .patch(
     verifyJwt,
@@ -23,7 +21,7 @@ router
   .delete(verifyJwt, commentController.deleteComment)
 
 router
-  .get('/:userId', verifyJwt, commentController.getUserComment)
   .post('/like', verifyJwt, commentController.likeComment)
+  .get('/:userId', verifyJwt, commentController.getUserComment)
 
 export default router

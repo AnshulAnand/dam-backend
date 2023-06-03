@@ -20,8 +20,8 @@ router
   .delete(verifyJwt, articleController.deleteArticle)
 
 router
-  .get('/:url', articleController.getArticle)
   .post('/like', verifyJwt, articleController.likeArticle)
-  .post('/search', articleController.searchArticle)
+  .get('/search', articleController.searchArticle)
+  .get('/:url', articleController.getArticle)
 
 export default router

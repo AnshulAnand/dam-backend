@@ -8,11 +8,21 @@ import asyncHandler from 'express-async-handler'
 // @route  GET /replies
 // @access Public
 const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
-  const results = res.paginatedResults
-  if (!results || results.results.length === 0) {
-    res.status(400).json({ message: 'No replies found' })
-    return
-  }
+  const page = parseInt(req.query.page as string)
+  const limit = parseInt(req.query.limit as string)
+  const articleId = req.query.articleId as string
+  const commentId = req.query.commentId as string
+  const skip = (page - 1) * limit
+
+  const results = await ReplyModel.find({
+    parentArticle: articleId,
+    parentComment: commentId
+  })
+    .sort({ _id: -1 })
+    .limit(limit)
+    .skip(skip)
+    .exec()
+
   res.json(results)
 })
 

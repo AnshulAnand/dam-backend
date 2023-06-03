@@ -8,11 +8,19 @@ import asyncHandler from 'express-async-handler'
 // @route  GET /comments
 // @access Public
 const getAllComments = asyncHandler(async (req: Request, res: Response) => {
-  const results = res.paginatedResults
-  if (!results || results.results.length === 0) {
-    res.status(400).json({ message: 'No comments found' })
-    return
-  }
+  const page = parseInt(req.query.page as string)
+  const limit = parseInt(req.query.limit as string)
+  const articleId = req.query.articleId as string
+  const skip = (page - 1) * limit
+
+  console.log({ page, limit, articleId })
+
+  const results = await CommentModel.find({ parentArticle: articleId })
+    .sort({ _id: -1 })
+    .limit(limit)
+    .skip(skip)
+    .exec()
+
   res.json(results)
 })
 

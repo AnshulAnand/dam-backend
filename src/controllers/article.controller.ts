@@ -201,26 +201,74 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Search article
-// @route  POST /articles/search
+// @route  GET /articles/search
 // @access Public
 const searchArticle = asyncHandler(async (req: Request, res: Response) => {
-  const { searchText } = req.body
+  const page = parseInt(req.query.page as string)
+  const limit = parseInt(req.query.limit as string)
+  const category = req.query.category as string
+  const body = req.query.body as string
+  const skip = (page - 1) * limit
+  // const { category, body } = req.query
+  // const startIndex = (page - 1) * limit
+  // const lastIndex = page * limit
 
-  const articles = await ArticleModel.find({
-    $or: [
-      { tags: { $regex: searchText, $options: 'i' } },
-      { title: { $regex: searchText, $options: 'i' } }
-    ]
-  })
-    .sort({ _id: -1 })
-    .exec()
+  // interface Results {
+  //   next?: { page: number; limit: number }
+  //   previous?: { page: number; limit: number }
+  //   results?: any
+  // }
 
-  if (articles.length < 1) {
-    res.status(400).json({ message: 'No more articles' })
-    return
+  // const results: Results = {}
+
+  if (category === 'text') {
+    const articles = await ArticleModel.find({
+      $or: [
+        { tags: { $regex: body, $options: 'i' } },
+        { title: { $regex: body, $options: 'i' } }
+      ]
+    })
+      .sort({ _id: -1 })
+      .limit(limit)
+      .skip(skip)
+      .exec()
+
+    if (articles.length < 1) {
+      res.status(400).json({ message: 'No more articles' })
+      return
+    }
+
+    res.json(articles)
+  } else {
+    const results = await ArticleModel.find({
+      tags: { $regex: body, $options: 'i' }
+    })
+      .sort({ _id: -1 })
+      .limit(limit)
+      .skip(skip)
+      .exec()
+
+    // if (lastIndex < (await ArticleModel.countDocuments().exec())) {
+    //   results.next = {
+    //     page: page + 1,
+    //     limit: limit
+    //   }
+    // }
+
+    // if (startIndex > 0) {
+    //   results.previous = {
+    //     page: page - 1,
+    //     limit: limit
+    //   }
+    // }
+
+    if (results.length < 1) {
+      res.status(400).json({ message: 'No more articles' })
+      return
+    }
+
+    res.json(results)
   }
-
-  res.json(articles)
 })
 
 export default {
