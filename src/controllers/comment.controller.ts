@@ -39,6 +39,21 @@ const getUserComment = asyncHandler(async (req: Request, res: Response) => {
   res.json(comments)
 })
 
+// @desc   GET comment by id
+// @route  GET /comments/id/:id
+// @access Private
+const getComment = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+  const comment = await CommentModel.findById(id)
+
+  if (!comment) {
+    res.json({ message: 'Comment not found ' })
+    return
+  }
+
+  res.json(comment)
+})
+
 // @desc   Like comment
 // @route  POST /comments/like
 // @access Private
@@ -149,18 +164,15 @@ const updateComment = asyncHandler(
 // @route  DELETE /comments
 // @access Private
 const deleteComment = asyncHandler(async (req: Request, res: Response) => {
-  const { parentArticle }: { parentArticle: string } = req.body
+  const { commentId }: { commentId: string } = req.body
 
-  if (!parentArticle) {
+  if (!commentId) {
     res.status(400)
     res.json({ message: 'Comment ID required' })
     return
   }
 
-  const comment = await CommentModel.findOne({
-    parentArticle,
-    user: req.userId
-  })
+  const comment = await CommentModel.findById(commentId)
 
   if (!comment) {
     res.status(400)
@@ -176,6 +188,7 @@ const deleteComment = asyncHandler(async (req: Request, res: Response) => {
 export default {
   getUserComment,
   getAllComments,
+  getComment,
   likeComment,
   postComment,
   updateComment,

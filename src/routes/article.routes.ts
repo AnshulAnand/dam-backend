@@ -23,5 +23,6 @@ router
   .post('/like', verifyJwt, articleController.likeArticle)
   .get('/search', articleController.searchArticle)
   .get('/:url', articleController.getArticle)
+  .get('/id/:id', articleController.getArticleById)
 
 export default router

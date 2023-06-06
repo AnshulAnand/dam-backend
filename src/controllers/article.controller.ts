@@ -37,6 +37,22 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
   res.json(article)
 })
 
+// @desc   Get article by Id
+// @route  GET /articles/id/:id
+// @access Public
+const getArticleById = asyncHandler(async (req: Request, res: Response) => {
+  const { id } = req.params
+
+  const article = await ArticleModel.findById(id)
+
+  if (!article) {
+    res.status(400).json({ message: 'No Article Found' })
+    return
+  }
+
+  res.json(article)
+})
+
 // @desc   Like article
 // @route  POST /articles/like
 // @access Private
@@ -209,17 +225,6 @@ const searchArticle = asyncHandler(async (req: Request, res: Response) => {
   const category = req.query.category as string
   const body = req.query.body as string
   const skip = (page - 1) * limit
-  // const { category, body } = req.query
-  // const startIndex = (page - 1) * limit
-  // const lastIndex = page * limit
-
-  // interface Results {
-  //   next?: { page: number; limit: number }
-  //   previous?: { page: number; limit: number }
-  //   results?: any
-  // }
-
-  // const results: Results = {}
 
   if (category === 'text') {
     const articles = await ArticleModel.find({
@@ -248,20 +253,6 @@ const searchArticle = asyncHandler(async (req: Request, res: Response) => {
       .skip(skip)
       .exec()
 
-    // if (lastIndex < (await ArticleModel.countDocuments().exec())) {
-    //   results.next = {
-    //     page: page + 1,
-    //     limit: limit
-    //   }
-    // }
-
-    // if (startIndex > 0) {
-    //   results.previous = {
-    //     page: page - 1,
-    //     limit: limit
-    //   }
-    // }
-
     if (results.length < 1) {
       res.status(400).json({ message: 'No more articles' })
       return
@@ -273,6 +264,7 @@ const searchArticle = asyncHandler(async (req: Request, res: Response) => {
 
 export default {
   getArticle,
+  getArticleById,
   likeArticle,
   getAllArticles,
   createArticle,
