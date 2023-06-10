@@ -1,6 +1,10 @@
 import express from 'express'
 import articleController from '../controllers/article.controller'
-import { createArticleSchema, articleSchema } from '../schema/article.schema'
+import {
+  createArticleSchema,
+  updateArticleSchema,
+  searchArticleSchema
+} from '../schema/article.schema'
 import validate from '../middleware/validateResource'
 import verifyJwt from '../middleware/verifyJwt'
 import paginatedResults from '../middleware/paginatedResults'
@@ -16,12 +20,20 @@ router
     validate(createArticleSchema),
     articleController.createArticle
   )
-  .patch(verifyJwt, validate(articleSchema), articleController.updateArticle)
+  .patch(
+    verifyJwt,
+    validate(updateArticleSchema),
+    articleController.updateArticle
+  )
   .delete(verifyJwt, articleController.deleteArticle)
 
 router
   .post('/like', verifyJwt, articleController.likeArticle)
-  .get('/search', articleController.searchArticle)
+  .get(
+    '/search',
+    validate(searchArticleSchema),
+    articleController.searchArticle
+  )
   .get('/:url', articleController.getArticle)
   .get('/id/:id', articleController.getArticleById)
 

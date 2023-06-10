@@ -13,10 +13,7 @@ const getAllComments = asyncHandler(async (req: Request, res: Response) => {
   const articleId = req.query.articleId as string
   const skip = (page - 1) * limit
 
-  console.log({ page, limit, articleId })
-
   const results = await CommentModel.find({ parentArticle: articleId })
-    .sort({ _id: -1 })
     .limit(limit)
     .skip(skip)
     .exec()

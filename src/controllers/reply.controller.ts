@@ -18,7 +18,6 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
     parentArticle: articleId,
     parentComment: commentId
   })
-    .sort({ _id: -1 })
     .limit(limit)
     .skip(skip)
     .exec()

@@ -23,6 +23,7 @@ import userRoutes from './routes/user.routes'
 import articleRoutes from './routes/article.routes'
 import commentRoutes from './routes/comment.routes'
 import replyRoutes from './routes/reply.routes'
+import newsletterRoutes from './routes/newsletter.routes'
 
 // using routes
 app.use('/health-check', healthcheck)
@@ -30,6 +31,7 @@ app.use('/users', userRoutes)
 app.use('/articles', articleRoutes)
 app.use('/comments', commentRoutes)
 app.use('/replies', replyRoutes)
+app.use('/newsletter', newsletterRoutes)
 
 const PORT = config.get<number>('port')
 

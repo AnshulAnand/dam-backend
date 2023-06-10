@@ -3,7 +3,11 @@ import ArticleModel from '../models/articles/article.model'
 import UserModel from '../models/user.model'
 import LikeModel from '../models/articles/article.likes.model'
 import asyncHandler from 'express-async-handler'
-import { CreateArticleInput, ArticleInput } from '../schema/article.schema'
+import {
+  CreateArticleInput,
+  UpdateArticleInput,
+  SearchArticleInput
+} from '../schema/article.schema'
 const nanoid = import('nanoid')
 
 // @desc   Get all articles
@@ -160,7 +164,7 @@ const createArticle = asyncHandler(
 // @route  PATCH /articles
 // @access Private
 const updateArticle = asyncHandler(
-  async (req: Request<{}, {}, ArticleInput['body']>, res: Response) => {
+  async (req: Request<{}, {}, UpdateArticleInput['body']>, res: Response) => {
     const { title, tags, description, body, image, articleId } = req.body
 
     if (!articleId) {
@@ -219,48 +223,50 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
 // @desc   Search article
 // @route  GET /articles/search
 // @access Public
-const searchArticle = asyncHandler(async (req: Request, res: Response) => {
-  const page = parseInt(req.query.page as string)
-  const limit = parseInt(req.query.limit as string)
-  const category = req.query.category as string
-  const body = req.query.body as string
-  const skip = (page - 1) * limit
+const searchArticle = asyncHandler(
+  async (req: Request<{}, {}, SearchArticleInput['query']>, res: Response) => {
+    const page = parseInt(req.query.page as string)
+    const limit = parseInt(req.query.limit as string)
+    const category = req.query.category
+    const body = req.query.body as string
+    const skip = (page - 1) * limit
 
-  if (category === 'text') {
-    const articles = await ArticleModel.find({
-      $or: [
-        { tags: { $regex: body, $options: 'i' } },
-        { title: { $regex: body, $options: 'i' } }
-      ]
-    })
-      .sort({ _id: -1 })
-      .limit(limit)
-      .skip(skip)
-      .exec()
+    if (category === 'text') {
+      const articles = await ArticleModel.find({
+        $or: [
+          { tags: { $regex: body, $options: 'i' } },
+          { title: { $regex: body, $options: 'i' } }
+        ]
+      })
+        .sort({ _id: -1 })
+        .limit(limit)
+        .skip(skip)
+        .exec()
 
-    if (articles.length < 1) {
-      res.status(400).json({ message: 'No more articles' })
-      return
+      if (articles.length < 1) {
+        res.status(400).json({ message: 'No more articles' })
+        return
+      }
+
+      res.json(articles)
+    } else {
+      const results = await ArticleModel.find({
+        tags: { $regex: body, $options: 'i' }
+      })
+        .sort({ _id: -1 })
+        .limit(limit)
+        .skip(skip)
+        .exec()
+
+      if (results.length < 1) {
+        res.status(400).json({ message: 'No more articles' })
+        return
+      }
+
+      res.json(results)
     }
-
-    res.json(articles)
-  } else {
-    const results = await ArticleModel.find({
-      tags: { $regex: body, $options: 'i' }
-    })
-      .sort({ _id: -1 })
-      .limit(limit)
-      .skip(skip)
-      .exec()
-
-    if (results.length < 1) {
-      res.status(400).json({ message: 'No more articles' })
-      return
-    }
-
-    res.json(results)
   }
-})
+)
 
 export default {
   getArticle,
