@@ -10,6 +10,7 @@ import {
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import config from 'config'
+import NewsletterModel from '../models/newsletter.model'
 
 // @desc   Get all users
 // @route  GET /users
@@ -103,6 +104,8 @@ const registerUser = asyncHandler(
     }
 
     const newBasicAuth = await BasicAuthModel.create(basicAuthObject)
+
+    await NewsletterModel.create({ user: newUser._id })
 
     const JWT = jwt.sign(
       { userId: newUser._id },
