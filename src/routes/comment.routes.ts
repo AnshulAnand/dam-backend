@@ -23,6 +23,6 @@ router
 router
   .post('/like', verifyJwt, commentController.likeComment)
   .get('/id/:id', verifyJwt, commentController.getComment)
-  .get('/:userId', verifyJwt, commentController.getUserComment)
+  .get('/:articleId', verifyJwt, commentController.getUserComment)
 
 export default router

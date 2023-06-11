@@ -15,11 +15,26 @@ const nanoid = import('nanoid')
 // @access Public
 const getAllArticles = asyncHandler(async (req: Request, res: Response) => {
   const results = res.paginatedResults
-  if (!results || results.results.length === 0) {
-    res.status(400).json({ message: 'No Articles Found' })
-    return
-  }
   res.json(results)
+})
+
+// @desc   GET user articles
+// @route  GET /articles/user/:userId
+// @access Private
+const getUserArticles = asyncHandler(async (req: Request, res: Response) => {
+  const { userId } = req.params
+
+  const page = parseInt(req.query.page as string)
+  const limit = parseInt(req.query.limit as string)
+  const skip = (page - 1) * limit
+
+  const articles = await ArticleModel.find({ user: userId })
+    .sort({ _id: -1 })
+    .limit(limit)
+    .skip(skip)
+    .exec()
+
+  res.json(articles)
 })
 
 // @desc   Get article
@@ -243,11 +258,6 @@ const searchArticle = asyncHandler(
         .skip(skip)
         .exec()
 
-      if (articles.length < 1) {
-        res.status(400).json({ message: 'No more articles' })
-        return
-      }
-
       res.json(articles)
     } else {
       const results = await ArticleModel.find({
@@ -258,11 +268,6 @@ const searchArticle = asyncHandler(
         .skip(skip)
         .exec()
 
-      if (results.length < 1) {
-        res.status(400).json({ message: 'No more articles' })
-        return
-      }
-
       res.json(results)
     }
   }
@@ -270,6 +275,7 @@ const searchArticle = asyncHandler(
 
 export default {
   getArticle,
+  getUserArticles,
   getArticleById,
   likeArticle,
   getAllArticles,

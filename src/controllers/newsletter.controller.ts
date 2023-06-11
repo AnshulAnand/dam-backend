@@ -8,16 +8,16 @@ import { NewsletterSchema } from '../schema/newsletter.schema'
 // @access Public
 const subscribeNewsletter = asyncHanlder(
   async (req: Request<{}, {}, NewsletterSchema['body']>, res: Response) => {
-    const { user } = req.body
+    const { email } = req.body
 
-    const duplicateUser = await NewsletterModel.findOne({ user })
+    const duplicateUser = await NewsletterModel.findOne({ email })
 
     if (duplicateUser) {
       res.status(409).json({ message: 'You are already subscribed' })
       return
     }
 
-    await NewsletterModel.create({ user })
+    await NewsletterModel.create({ email })
 
     res.json({ message: 'You are subscribed to our newsletter' })
   }
@@ -28,9 +28,9 @@ const subscribeNewsletter = asyncHanlder(
 // @access Public
 const unSubscribeNewsletter = asyncHanlder(
   async (req: Request<{}, {}, NewsletterSchema['body']>, res: Response) => {
-    const { user } = req.body
+    const { email } = req.body
 
-    const newsletter = await NewsletterModel.findOne({ user })
+    const newsletter = await NewsletterModel.findOne({ email })
 
     if (!newsletter) {
       res.status(409).json({ message: 'Email not found' })

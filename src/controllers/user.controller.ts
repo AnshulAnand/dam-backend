@@ -105,7 +105,7 @@ const registerUser = asyncHandler(
 
     const newBasicAuth = await BasicAuthModel.create(basicAuthObject)
 
-    await NewsletterModel.create({ user: newUser._id })
+    await NewsletterModel.create({ email })
 
     const JWT = jwt.sign(
       { userId: newUser._id },

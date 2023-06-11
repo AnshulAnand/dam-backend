@@ -34,6 +34,7 @@ router
     validate(searchArticleSchema),
     articleController.searchArticle
   )
+  .get('/user/:userId', articleController.getUserArticles)
   .get('/:url', articleController.getArticle)
   .get('/id/:id', articleController.getArticleById)
 
