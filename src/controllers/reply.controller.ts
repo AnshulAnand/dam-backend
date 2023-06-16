@@ -25,6 +25,21 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
   res.json(results)
 })
 
+// @desc   Check whether user has liked reply
+// @route  POST /replies/check-like
+// @access Private
+const checkLikeReply = asyncHandler(async (req: Request, res: Response) => {
+  const { replyId, parentComment } = req.body
+
+  const liked = await LikeModel.exists({
+    _id: replyId,
+    user: req.userId,
+    parentComment
+  })
+
+  res.json({ liked })
+})
+
 // @desc   Like reply
 // @route  POST /replies/like
 // @access Private
@@ -37,7 +52,7 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const liked = await LikeModel.findById(replyId)
+  const liked = await LikeModel.findOne({ _id: replyId, parentComment })
 
   if (!liked) {
     const reply = await ReplyModel.findById(replyId)
@@ -158,6 +173,7 @@ const deleteReply = asyncHandler(async (req: Request, res: Response) => {
 
 export default {
   getAllreplies,
+  checkLikeReply,
   likeReply,
   postReply,
   updateReply,

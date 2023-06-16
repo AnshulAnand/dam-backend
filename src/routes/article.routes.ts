@@ -28,6 +28,7 @@ router
   .delete(verifyJwt, articleController.deleteArticle)
 
 router
+  .get('/check-like', verifyJwt, articleController.checkLikeArticle)
   .post('/like', verifyJwt, articleController.likeArticle)
   .get(
     '/search',

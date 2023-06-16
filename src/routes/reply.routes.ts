@@ -13,6 +13,8 @@ router
   .patch(verifyJwt, validate(updateReplySchema), replyController.updateReply)
   .delete(verifyJwt, replyController.deleteReply)
 
-router.post('/like', verifyJwt, replyController.likeReply)
+router
+  .get('/check-like', verifyJwt, replyController.checkLikeReply)
+  .post('/like', verifyJwt, replyController.likeReply)
 
 export default router

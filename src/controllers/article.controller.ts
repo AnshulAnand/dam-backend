@@ -76,6 +76,20 @@ const getArticleById = asyncHandler(async (req: Request, res: Response) => {
   res.json(article)
 })
 
+// @desc   Check whether user has liked article
+// @route  POST /articles/check-like
+// @access Private
+const checkLikeArticle = asyncHandler(async (req: Request, res: Response) => {
+  const { articleId } = req.body
+
+  const liked = await LikeModel.exists({
+    user: req.userId,
+    article: articleId
+  })
+
+  res.json({ liked })
+})
+
 // @desc   Like article
 // @route  POST /articles/like
 // @access Private
@@ -281,6 +295,7 @@ export default {
   getArticle,
   getUserArticles,
   getArticleById,
+  checkLikeArticle,
   likeArticle,
   getAllArticles,
   createArticle,

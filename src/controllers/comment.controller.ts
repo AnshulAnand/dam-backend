@@ -51,6 +51,21 @@ const getComment = asyncHandler(async (req: Request, res: Response) => {
   res.json(comment)
 })
 
+// @desc   Check whether user has liked comment
+// @route  POST /comments/check-like
+// @access Private
+const checkLikeComment = asyncHandler(async (req: Request, res: Response) => {
+  const { commentId, parentArticle } = req.body
+
+  const liked = await LikeModel.exists({
+    _id: commentId,
+    parentArticle,
+    user: req.userId
+  })
+
+  res.json({ liked })
+})
+
 // @desc   Like comment
 // @route  POST /comments/like
 // @access Private
@@ -63,7 +78,10 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  const liked = await LikeModel.findById(commentId)
+  const liked = await LikeModel.findOne({
+    _id: commentId,
+    parentArticle: parentArticle
+  })
 
   if (!liked) {
     const comment = await CommentModel.findById(commentId).exec()
@@ -189,6 +207,7 @@ export default {
   getUserComment,
   getAllComments,
   getComment,
+  checkLikeComment,
   likeComment,
   postComment,
   updateComment,

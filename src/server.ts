@@ -33,6 +33,11 @@ app.use('/comments', commentRoutes)
 app.use('/replies', replyRoutes)
 app.use('/newsletter', newsletterRoutes)
 
+// Any other route
+app.all('/', (req, res) => {
+  res.sendStatus(400)
+})
+
 const PORT = config.get<number>('port')
 
 app.use(errorHandler)
