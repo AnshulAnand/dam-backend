@@ -10,6 +10,7 @@ export interface ArticleDocument extends Document {
   image: string
   views: number
   likes: number
+  comments: number
   edited: boolean
 }
 
@@ -24,6 +25,7 @@ const articleSchema = new Schema<ArticleDocument>(
     image: { type: String, default: '' },
     views: { type: Number, default: 0 },
     likes: { type: Number, default: 0 },
+    comments: { type: Number, default: 0 },
     edited: { type: Boolean, default: false }
   },
   { timestamps: true }

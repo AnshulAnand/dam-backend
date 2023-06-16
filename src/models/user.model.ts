@@ -1,13 +1,13 @@
 import { Schema, model, Document } from 'mongoose'
 
 export interface UserDocument extends Document {
-  name?: string
+  name: string
   username: string
   country?: string
-  bio?: string
-  link?: string
-  image?: string
-  views?: number
+  bio: string
+  link: string
+  image: string
+  views: number
 }
 
 const userSchema = new Schema<UserDocument>(

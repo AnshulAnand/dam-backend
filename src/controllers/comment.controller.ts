@@ -3,6 +3,7 @@ import CommentModel from '../models/comments/comment.model'
 import LikeModel from '../models/comments/comment.likes.model'
 import { CreateCommentInput, UpdateCommentInput } from '../schema/comment.shema'
 import asyncHandler from 'express-async-handler'
+import ArticleModel from '../models/articles/article.model'
 
 // @desc   Get all comments
 // @route  GET /comments
@@ -115,6 +116,9 @@ const postComment = asyncHandler(
     const comment = await CommentModel.create(commentObject)
 
     if (comment) {
+      await ArticleModel.findByIdAndUpdate(comment.parentArticle, {
+        $inc: { comments: 1 }
+      })
       res.status(201)
       res.json({ message: 'Comment added successfully' })
     } else {

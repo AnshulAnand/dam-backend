@@ -50,6 +50,10 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
+  await UserModel.findByIdAndUpdate(article.user, {
+    $inc: { views: 1 }
+  })
+
   article.views += 1
   await article.save()
 
