@@ -5,6 +5,7 @@ export interface CommentDocument extends Document {
   parentArticle: Types.ObjectId
   body: string
   likes: number
+  replies: number
   edited: boolean
 }
 
@@ -18,6 +19,7 @@ const commentSchema = new Schema<CommentDocument>(
     },
     body: { type: String, required: true },
     likes: { type: Number, default: 0 },
+    replies: { type: Number, default: 0 },
     edited: { type: Boolean, default: false }
   },
   { timestamps: true }

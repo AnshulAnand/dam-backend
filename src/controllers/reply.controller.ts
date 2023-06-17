@@ -3,6 +3,7 @@ import ReplyModel from '../models/replies/reply.model'
 import LikeModel from '../models/replies/reply.likes.model'
 import { CreateReplyInput, UpdateReplyInput } from '../schema/reply.schema'
 import asyncHandler from 'express-async-handler'
+import CommentModel from '../models/comments/comment.model'
 
 // @desc   Get all replies
 // @route  GET /replies
@@ -105,6 +106,9 @@ const postReply = asyncHandler(
     const reply = await ReplyModel.create(replyObject)
 
     if (reply) {
+      await CommentModel.findByIdAndUpdate(parentComment, {
+        $inc: { replies: 1 }
+      }).exec()
       res.status(201)
       res.json({ message: 'Reply added successfully' })
     } else {

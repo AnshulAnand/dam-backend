@@ -136,7 +136,7 @@ const postComment = asyncHandler(
     if (comment) {
       await ArticleModel.findByIdAndUpdate(comment.parentArticle, {
         $inc: { comments: 1 }
-      })
+      }).exec()
       res.status(201)
       res.json({ message: 'Comment added successfully' })
     } else {

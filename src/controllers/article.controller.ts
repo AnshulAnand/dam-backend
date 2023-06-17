@@ -52,7 +52,7 @@ const getArticle = asyncHandler(async (req: Request, res: Response) => {
 
   await UserModel.findByIdAndUpdate(article.user, {
     $inc: { views: 1 }
-  })
+  }).exec()
 
   article.views += 1
   await article.save()
@@ -158,7 +158,8 @@ const createArticle = asyncHandler(
 
     const nanoId = (await nanoid).customAlphabet('abcde0123456789', 5)
 
-    const url = title.replace(/ /g, '-') + '-' + nanoId()
+    const url =
+      title.replace(/[^a-z\d\s]+/gi, '').replace(/ /g, '-') + '-' + nanoId()
 
     interface ArticleObject {
       user: string
@@ -212,12 +213,7 @@ const updateArticle = asyncHandler(
       return
     }
 
-    if (title) {
-      article.title = title
-      const nanoId = (await nanoid).customAlphabet('abcde0123456789', 5)
-      article.url = title.replace(/ /g, '-') + '-' + nanoId()
-    }
-
+    if (title) article.title = title
     if (tags) article.tags = tags
     if (description) article.description = description
     if (body) article.body = body
