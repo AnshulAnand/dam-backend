@@ -28,7 +28,7 @@ router
   .delete(verifyJwt, articleController.deleteArticle)
 
 router
-  .get('/check-like', verifyJwt, articleController.checkLikeArticle)
+  .get('/check-like/:articleId', verifyJwt, articleController.checkLikeArticle)
   .post('/like', verifyJwt, articleController.likeArticle)
   .get(
     '/search',
@@ -36,7 +36,7 @@ router
     articleController.searchArticle
   )
   .get('/user/:userId', articleController.getUserArticles)
-  .get('/:url', articleController.getArticle)
   .get('/id/:id', articleController.getArticleById)
+  .get('/:url', articleController.getArticle)
 
 export default router

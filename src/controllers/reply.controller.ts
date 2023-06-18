@@ -27,15 +27,14 @@ const getAllreplies = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Check whether user has liked reply
-// @route  POST /replies/check-like
+// @route  GET /replies/check-like/:replyId
 // @access Private
 const checkLikeReply = asyncHandler(async (req: Request, res: Response) => {
-  const { replyId, parentComment } = req.body
+  const { replyId } = req.params
 
   const liked = await LikeModel.exists({
     _id: replyId,
-    user: req.userId,
-    parentComment
+    user: req.userId
   })
 
   res.json({ liked })
@@ -55,37 +54,26 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
 
   const liked = await LikeModel.findOne({ _id: replyId, parentComment })
 
-  if (!liked) {
-    const reply = await ReplyModel.findById(replyId)
-
-    if (!reply) {
-      res.status(400).json({ message: 'Reply Not Found' })
-      return
-    }
-
-    reply.likes += 1
-    await reply.save()
-
-    const likeObject = { user: req.userId, parentComment }
-
-    await LikeModel.create(likeObject)
-
-    res.json({ message: 'Like updated successfully' })
-  } else {
-    const reply = await ReplyModel.findById(replyId)
-
-    if (!reply) {
-      res.status(400).json({ message: 'Reply Not Found' })
-      return
-    }
-
-    reply.likes -= 1
-    await reply.save()
-
-    await liked.deleteOne()
-
-    res.json({ message: 'Like updated successfully' })
+  if (liked) {
+    res.json({ message: 'You have already liked this reply' })
+    return
   }
+
+  const reply = await ReplyModel.findById(replyId)
+
+  if (!reply) {
+    res.status(400).json({ message: 'Reply Not Found' })
+    return
+  }
+
+  reply.likes += 1
+  await reply.save()
+
+  const likeObject = { user: req.userId, parentComment }
+
+  await LikeModel.create(likeObject)
+
+  res.json({ message: 'Like upvoted successfully' })
 })
 
 // @desc   Post reply

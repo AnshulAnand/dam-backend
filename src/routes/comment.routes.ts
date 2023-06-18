@@ -21,7 +21,7 @@ router
   .delete(verifyJwt, commentController.deleteComment)
 
 router
-  .get('/check-like', verifyJwt, commentController.checkLikeComment)
+  .get('/check-like/:commentId', verifyJwt, commentController.checkLikeComment)
   .post('/like', verifyJwt, commentController.likeComment)
   .get('/id/:id', verifyJwt, commentController.getComment)
   .get('/:articleId', verifyJwt, commentController.getUserComment)

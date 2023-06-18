@@ -52,14 +52,13 @@ const getComment = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Check whether user has liked comment
-// @route  POST /comments/check-like
+// @route  GET /comments/check-like/:commentId
 // @access Private
 const checkLikeComment = asyncHandler(async (req: Request, res: Response) => {
-  const { commentId, parentArticle } = req.body
+  const { commentId } = req.params
 
   const liked = await LikeModel.exists({
     _id: commentId,
-    parentArticle,
     user: req.userId
   })
 
@@ -83,37 +82,26 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
     parentArticle: parentArticle
   })
 
-  if (!liked) {
-    const comment = await CommentModel.findById(commentId).exec()
-
-    if (!comment) {
-      res.status(400).json({ message: 'Comment Not Found' })
-      return
-    }
-
-    comment.likes += 1
-    await comment.save()
-
-    const likeObject = { user: req.userId, parent: parentArticle }
-
-    await LikeModel.create(likeObject)
-
-    res.json({ message: 'Like updated successfully' })
-  } else {
-    const comment = await CommentModel.findById(commentId)
-
-    if (!comment) {
-      res.status(400).json({ message: 'Comment Not Found' })
-      return
-    }
-
-    comment.likes -= 1
-    await comment.save()
-
-    await liked.deleteOne()
-
-    res.json({ message: 'Like updated successfully' })
+  if (liked) {
+    res.json({ message: 'You have already liked this comment' })
+    return
   }
+
+  const comment = await CommentModel.findById(commentId).exec()
+
+  if (!comment) {
+    res.status(400).json({ message: 'Comment Not Found' })
+    return
+  }
+
+  comment.likes += 1
+  await comment.save()
+
+  const likeObject = { user: req.userId, parent: parentArticle }
+
+  await LikeModel.create(likeObject)
+
+  res.json({ message: 'Like upvoted successfully' })
 })
 
 // @desc   Post comment

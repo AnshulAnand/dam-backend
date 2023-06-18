@@ -14,7 +14,7 @@ router
   .delete(verifyJwt, replyController.deleteReply)
 
 router
-  .get('/check-like', verifyJwt, replyController.checkLikeReply)
+  .get('/check-like/:replyId', verifyJwt, replyController.checkLikeReply)
   .post('/like', verifyJwt, replyController.likeReply)
 
 export default router

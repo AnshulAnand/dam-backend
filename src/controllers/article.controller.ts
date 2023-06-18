@@ -1,13 +1,13 @@
-import { Request, Response } from 'express'
-import ArticleModel from '../models/articles/article.model'
-import UserModel from '../models/user.model'
-import LikeModel from '../models/articles/article.likes.model'
-import asyncHandler from 'express-async-handler'
 import {
   CreateArticleInput,
   UpdateArticleInput,
   SearchArticleInput
 } from '../schema/article.schema'
+import { Request, Response } from 'express'
+import ArticleModel from '../models/articles/article.model'
+import UserModel from '../models/user.model'
+import LikeModel from '../models/articles/article.likes.model'
+import asyncHandler from 'express-async-handler'
 const nanoid = import('nanoid')
 
 // @desc   Get all articles
@@ -77,10 +77,11 @@ const getArticleById = asyncHandler(async (req: Request, res: Response) => {
 })
 
 // @desc   Check whether user has liked article
-// @route  POST /articles/check-like
+// @route  GET /articles/check-like/:articleId
 // @access Private
 const checkLikeArticle = asyncHandler(async (req: Request, res: Response) => {
-  const { articleId } = req.body
+  const { articleId } = req.params
+  console.log({ articleId })
 
   const liked = await LikeModel.exists({
     user: req.userId,
@@ -101,37 +102,26 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
     article: articleId
   })
 
-  if (!liked) {
-    const article = await ArticleModel.findById(articleId)
-
-    if (!article) {
-      res.status(400).json({ message: 'Article Not Found' })
-      return
-    }
-
-    article.likes += 1
-    await article.save()
-
-    const likeObject = { user: req.userId, article: articleId }
-
-    await LikeModel.create(likeObject)
-
-    res.json({ message: 'Like updated successfully' })
-  } else {
-    const article = await ArticleModel.findById(articleId)
-
-    if (!article) {
-      res.status(400).json({ message: 'Article Not Found' })
-      return
-    }
-
-    article.likes -= 1
-    await article.save()
-
-    await liked.deleteOne()
-
-    res.json({ message: 'Like updated successfully' })
+  if (liked) {
+    res.json({ message: 'You have already liked this article' })
+    return
   }
+
+  const article = await ArticleModel.findById(articleId)
+
+  if (!article) {
+    res.status(400).json({ message: 'Article Not Found' })
+    return
+  }
+
+  article.likes += 1
+  await article.save()
+
+  const likeObject = { user: req.userId, article: articleId }
+
+  await LikeModel.create(likeObject)
+
+  res.json({ message: 'Like upvoted successfully' })
 })
 
 // @desc   Create new article
