@@ -141,6 +141,8 @@ const createArticle = asyncHandler(
       return
     }
 
+    user.articles += 1
+
     if (!title || !body) {
       res.status(400).json({ message: 'All fields are required' })
       return
@@ -174,8 +176,10 @@ const createArticle = asyncHandler(
 
     const newArticle = await ArticleModel.create(articleObject)
 
+    await user.save()
+
     if (newArticle) {
-      res.status(201).json({ message: `Post created successfully` })
+      res.status(201).json({ message: newArticle })
     } else {
       res
         .status(400)
@@ -235,6 +239,10 @@ const deleteArticle = asyncHandler(async (req: Request, res: Response) => {
   }
 
   await article.deleteOne()
+
+  await UserModel.findByIdAndUpdate(article.user, {
+    $inc: { articles: -1 }
+  }).exec()
 
   res.json({ message: 'Post deleted' })
 })

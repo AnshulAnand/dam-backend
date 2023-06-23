@@ -18,29 +18,7 @@ function paginatedResults(model) {
       const startIndex = (page - 1) * limit
       const lastIndex = page * limit
 
-      interface Results {
-        next?: { page: number; limit: number }
-        previous?: { page: number; limit: number }
-        results?: any
-      }
-
-      const results: Results = {}
-
-      if (lastIndex < (await model.countDocuments().exec())) {
-        results.next = {
-          page: page + 1,
-          limit: limit
-        }
-      }
-
-      if (startIndex > 0) {
-        results.previous = {
-          page: page - 1,
-          limit: limit
-        }
-      }
-
-      results.results = await model
+      const results = await model
         .find()
         .sort({ _id: -1 })
         .limit(limit)

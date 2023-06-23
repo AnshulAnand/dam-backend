@@ -1,21 +1,25 @@
-import { Request, Response } from 'express'
-import UserModel from '../models/user.model'
-import BasicAuthModel from '../models/auth/basicAuth.model'
-import asyncHandler from 'express-async-handler'
 import {
   CreateUserInput,
   UpdateUserInput,
   LoginUserInput
 } from '../schema/user.schema'
+import axios from 'axios'
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
 import config from 'config'
+import jwt from 'jsonwebtoken'
+import { Request, Response } from 'express'
+import asyncHandler from 'express-async-handler'
+import UserModel from '../models/user.model'
+import BasicAuthModel from '../models/auth/basicAuth.model'
 import NewsletterModel from '../models/newsletter.model'
+const nanoid = import('nanoid')
+import qs from 'qs'
+import { sendEmail } from '../utils/sendEmail'
 
 // @desc   Get all users
 // @route  GET /users
 // @access Private
-const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+export const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
   const users = await UserModel.find().select('-password').lean()
   if (!users?.length) {
     res.status(400).json({ message: 'No Users Found' })
@@ -27,32 +31,38 @@ const getAllUsers = asyncHandler(async (req: Request, res: Response) => {
 // @desc   Get current user
 // @route  GET /users/current
 // @access Private
-const getCurrentUser = asyncHandler(async (req: Request, res: Response) => {
-  const user = await UserModel.findById(req.userId).select('-password').lean()
-  if (!user) {
-    res.status(400).json({ message: 'No User Found' })
-  } else {
-    res.json(user)
+export const getCurrentUser = asyncHandler(
+  async (req: Request, res: Response) => {
+    const user = await UserModel.findById(req.userId).select('-password').lean()
+    if (!user) {
+      res.status(400).json({ message: 'No User Found' })
+    } else {
+      res.json(user)
+    }
   }
-})
+)
 
 // @desc   Get user by username
 // @route  GET /users/username/:username
 // @access Public
-const getUserByUsername = asyncHandler(async (req: Request, res: Response) => {
-  const { username } = req.params
-  const user = await UserModel.findOne({ username }).select('-password').lean()
-  if (!user) {
-    res.status(400).json({ message: 'No User Found' })
-  } else {
-    res.json(user)
+export const getUserByUsername = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { username } = req.params
+    const user = await UserModel.findOne({ username })
+      .select('-password')
+      .lean()
+    if (!user) {
+      res.status(400).json({ message: 'No User Found' })
+    } else {
+      res.json(user)
+    }
   }
-})
+)
 
 // @desc   Get user by id
 // @route  GET /users/id/:userId
 // @access Public
-const getUserById = asyncHandler(async (req: Request, res: Response) => {
+export const getUserById = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params
   const user = await UserModel.findById(userId).select('-password').lean()
   if (!user) {
@@ -65,7 +75,7 @@ const getUserById = asyncHandler(async (req: Request, res: Response) => {
 // @desc   Create and register new user
 // @route  POST /register
 // @access Private
-const registerUser = asyncHandler(
+export const registerUser = asyncHandler(
   async (req: Request<{}, {}, CreateUserInput['body']>, res: Response) => {
     const { name, username, email, password } = req.body
 
@@ -81,7 +91,7 @@ const registerUser = asyncHandler(
       return
     }
 
-    const duplicateEmail = await BasicAuthModel.findOne({ email }).lean()
+    const duplicateEmail = await UserModel.findOne({ email }).lean()
 
     if (duplicateEmail) {
       res.status(409).json({ message: 'Email already exists' })
@@ -93,13 +103,12 @@ const registerUser = asyncHandler(
       config.get<number>('saltWorkFactor')
     )
 
-    const userObject = { name, username }
+    const userObject = { name, username, email }
 
     const newUser = await UserModel.create(userObject)
 
     const basicAuthObject = {
       password: hashedPassword,
-      email,
       user: newUser._id
     }
 
@@ -113,8 +122,6 @@ const registerUser = asyncHandler(
       { expiresIn: config.get<string>('jwtTtl') }
     )
 
-    // await newUser.save()
-
     if (newUser && newBasicAuth) {
       res.cookie('jwt', JWT, {
         httpOnly: true,
@@ -122,7 +129,10 @@ const registerUser = asyncHandler(
         secure: true,
         maxAge: 24 * 60 * 60 * 1000
       })
+
       res.json({ message: 'Registered Successfully' })
+
+      sendEmail(newUser.name, newUser.email)
     } else {
       res
         .status(400)
@@ -134,7 +144,7 @@ const registerUser = asyncHandler(
 // @desc   Login user
 // @route  POST /login
 // @access Private
-const loginUser = asyncHandler(
+export const loginUser = asyncHandler(
   async (req: Request<{}, {}, LoginUserInput['body']>, res: Response) => {
     const { email, password } = req.body
 
@@ -143,10 +153,20 @@ const loginUser = asyncHandler(
       return
     }
 
-    const match = await BasicAuthModel.findOne({ email }).lean()
+    const user = await UserModel.findOne({ email })
 
-    if (match) {
-      const user = await UserModel.findById(match.user)
+    if (user) {
+      const basicAuth = await BasicAuthModel.findById(user._id)
+
+      const comparePasswords = await bcrypt.compare(
+        password,
+        basicAuth.password
+      )
+
+      if (!comparePasswords) {
+        res.status(401).json({ message: 'Incorrect email or password' })
+        return
+      }
 
       const JWT = jwt.sign(
         { userId: user._id },
@@ -154,15 +174,110 @@ const loginUser = asyncHandler(
         { expiresIn: config.get<string>('jwtTtl') }
       )
 
-      await user.save()
-
       res.cookie('jwt', JWT, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
+
       res.json({ message: 'Logged in successfully' })
+
+      sendEmail(user.name, user.email)
     } else {
       res.status(401).json({ message: 'No user found' })
+    }
+  }
+)
+
+// @desc   Register/login user via google oauth
+// @route  GET /users/oauth/google
+// @access Public
+export const googleOAuthRegister = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { code } = req.query
+
+    const url = 'https://oauth2.googleapis.com/token'
+
+    const values = {
+      code,
+      client_id: config.get<string>('googleClientId'),
+      client_secret: config.get<string>('googleClientSecret'),
+      redirect_uri: config.get<string>('googleOAuthRedirectUrl'),
+      grant_type: 'authorization_code'
+    }
+
+    const response = await axios.post(url, qs.stringify(values), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    })
+
+    const { id_token } = await response.data
+
+    const user: any = jwt.decode(id_token)
+
+    const nanoId = (await nanoid).customAlphabet('abcde0123456789', 3)
+
+    const username = user.name.replace(/ /g, '-') + '-' + nanoId()
+
+    const duplicateEmail = await UserModel.findOne({ email: user.email }).lean()
+
+    if (duplicateEmail) {
+      const JWT = jwt.sign(
+        { userId: duplicateEmail._id },
+        config.get<string>('jwtSecret'),
+        { expiresIn: config.get<string>('jwtTtl') }
+      )
+
+      res.cookie('jwt', JWT, {
+        httpOnly: true,
+        // sameSite: 'none',
+        // secure: true,
+        maxAge: 24 * 60 * 60 * 1000
+      })
+
+      res.redirect(config.get<string>('clientUrl'))
+
+      sendEmail(duplicateEmail.name, duplicateEmail.email)
+      return
+    }
+
+    const duplicateUsername = await UserModel.findOne({ username }).lean()
+
+    if (duplicateUsername) {
+      res.status(409).json({ message: 'Username already exists' })
+      return
+    }
+
+    const userObject = {
+      name: user.name,
+      username,
+      email: user.email,
+      image: user.picture
+    }
+
+    const newUser = await UserModel.create(userObject)
+
+    await NewsletterModel.create({ user: newUser._id })
+
+    const JWT = jwt.sign(
+      { userId: newUser._id },
+      config.get<string>('jwtSecret'),
+      { expiresIn: config.get<string>('jwtTtl') }
+    )
+
+    if (newUser) {
+      res.cookie('jwt', JWT, {
+        httpOnly: true,
+        sameSite: 'none',
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000
+      })
+
+      res.redirect(config.get<string>('clientUrl'))
+
+      sendEmail(newUser.name, newUser.email)
+    } else {
+      res.status(400).json({
+        message: 'Invalid user data received, could not create user'
+      })
     }
   }
 )
@@ -170,7 +285,7 @@ const loginUser = asyncHandler(
 // @desc   Logout user
 // @route  GET /logout
 // @access Private
-const logoutUser = asyncHandler(async (req: Request, res: Response) => {
+export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.userId
 
   if (!userId) {
@@ -200,7 +315,7 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 // @desc   Update user
 // @route  PATCH /users
 // @access Private
-const updateUser = asyncHandler(
+export const updateUser = asyncHandler(
   async (req: Request<{}, {}, UpdateUserInput['body']>, res: Response) => {
     const { name, username, country, bio, link, image } = req.body
 
@@ -218,16 +333,16 @@ const updateUser = asyncHandler(
     if (link) user.link = link
     if (image) user.image = image
 
-    await user.save()
+    const updatedUser = await user.save()
 
-    res.json({ message: `User updated` })
+    res.json({ message: updatedUser })
   }
 )
 
 // @desc   Delete user
 // @route  DELETE /users
 // @access Private
-const deleteUser = asyncHandler(async (req: Request, res: Response) => {
+export const deleteUser = asyncHandler(async (req: Request, res: Response) => {
   const user = req.userId
 
   if (!user) {
@@ -246,15 +361,3 @@ const deleteUser = asyncHandler(async (req: Request, res: Response) => {
 
   res.json(`${foundUser.username} deleted`)
 })
-
-export default {
-  getAllUsers,
-  getCurrentUser,
-  getUserByUsername,
-  getUserById,
-  registerUser,
-  loginUser,
-  logoutUser,
-  updateUser,
-  deleteUser
-}

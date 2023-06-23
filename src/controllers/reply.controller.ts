@@ -160,6 +160,10 @@ const deleteReply = asyncHandler(async (req: Request, res: Response) => {
 
   reply.deleteOne()
 
+  await CommentModel.findByIdAndUpdate(reply.parentComment, {
+    $inc: { replies: -1 }
+  }).exec()
+
   res.json({ message: 'Successfully deleted reply' })
 })
 

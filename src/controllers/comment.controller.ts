@@ -162,6 +162,10 @@ const updateComment = asyncHandler(
 
     await comment.save()
 
+    await ArticleModel.findByIdAndUpdate(comment.parentArticle, {
+      $inc: { comments: -1 }
+    }).exec()
+
     res.json({ message: 'Comment updated successfully' })
   }
 )
