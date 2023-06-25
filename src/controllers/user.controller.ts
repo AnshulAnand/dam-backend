@@ -12,9 +12,9 @@ import asyncHandler from 'express-async-handler'
 import UserModel from '../models/user.model'
 import BasicAuthModel from '../models/auth/basicAuth.model'
 import NewsletterModel from '../models/newsletter.model'
+import { sendRegisterEmail, sendLoginEmail } from '../utils/sendEmail'
 const nanoid = import('nanoid')
 import qs from 'qs'
-import { sendEmail } from '../utils/sendEmail'
 
 // @desc   Get all users
 // @route  GET /users
@@ -37,7 +37,7 @@ export const getCurrentUser = asyncHandler(
     if (!user) {
       res.status(400).json({ message: 'No User Found' })
     } else {
-      res.json(user)
+      res.json({ user })
     }
   }
 )
@@ -54,7 +54,7 @@ export const getUserByUsername = asyncHandler(
     if (!user) {
       res.status(400).json({ message: 'No User Found' })
     } else {
-      res.json(user)
+      res.json({ user })
     }
   }
 )
@@ -65,10 +65,11 @@ export const getUserByUsername = asyncHandler(
 export const getUserById = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params
   const user = await UserModel.findById(userId).select('-password').lean()
+  console.log({ user })
   if (!user) {
     res.status(400).json({ message: 'No User Found' })
   } else {
-    res.json(user)
+    res.json({ user })
   }
 })
 
@@ -132,7 +133,7 @@ export const registerUser = asyncHandler(
 
       res.json({ message: 'Registered Successfully' })
 
-      sendEmail(newUser.name, newUser.email)
+      sendRegisterEmail(newUser)
     } else {
       res
         .status(400)
@@ -181,7 +182,7 @@ export const loginUser = asyncHandler(
 
       res.json({ message: 'Logged in successfully' })
 
-      sendEmail(user.name, user.email)
+      sendLoginEmail(user)
     } else {
       res.status(401).json({ message: 'No user found' })
     }
@@ -235,7 +236,7 @@ export const googleOAuthRegister = asyncHandler(
 
       res.redirect(config.get<string>('clientUrl'))
 
-      sendEmail(duplicateEmail.name, duplicateEmail.email)
+      sendLoginEmail(duplicateEmail)
       return
     }
 
@@ -255,7 +256,7 @@ export const googleOAuthRegister = asyncHandler(
 
     const newUser = await UserModel.create(userObject)
 
-    await NewsletterModel.create({ user: newUser._id })
+    await NewsletterModel.create({ email: user.email })
 
     const JWT = jwt.sign(
       { userId: newUser._id },
@@ -273,7 +274,7 @@ export const googleOAuthRegister = asyncHandler(
 
       res.redirect(config.get<string>('clientUrl'))
 
-      sendEmail(newUser.name, newUser.email)
+      sendRegisterEmail(newUser)
     } else {
       res.status(400).json({
         message: 'Invalid user data received, could not create user'

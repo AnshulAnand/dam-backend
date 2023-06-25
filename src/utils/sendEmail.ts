@@ -1,8 +1,48 @@
 import nodemailer from 'nodemailer'
-import { login_email_body } from './emailBody'
+import { emailBody } from './emailBody'
 
-export const sendEmail = (name: string, email: string) => {
-  const mail = login_email_body
+export const sendRegisterEmail = (user: any) => {
+  // create reusable transporter object using the default SMTP transport
+  let transporter = nodemailer.createTransport({
+    service: 'gmail', // use your email service
+    host: 'mail.google.com', // use your email service host name
+    port: 25,
+    secure: false, // true for 465, false for other ports
+    auth: {
+      // use your email and password
+      user: process.env.EMAIL,
+      pass: process.env.EMAIL_PASSWORD
+    }
+    // tls: {
+    //   rejectUnauthorized: false,
+    // },
+  })
+
+  // setup email data with unicode symbols
+  let mailOptions = {
+    from: process.env.EMAIL, // sender address
+    to: user.email, // list of receivers
+    subject: 'Welcome to DAM', // Subject line
+    text: 'Hello world?', // plain text body
+    html: emailBody(user) // html body
+  }
+
+  // send mail with defined transport object
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) throw error
+    // console.log('Message sent: %s', info.messageId)
+    // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+  })
+}
+
+export const sendLoginEmail = (user: any) => {
+  const emailBody = `
+  <p>Dear ${user.name},</p>
+  <p></p>
+  <p>A login was detected from ${user.email}</p>
+  <p></p>
+  <p>Ignore if it was you.</p>
+  `
 
   // create reusable transporter object using the default SMTP transport
   let transporter = nodemailer.createTransport({
@@ -23,16 +63,16 @@ export const sendEmail = (name: string, email: string) => {
   // setup email data with unicode symbols
   let mailOptions = {
     from: process.env.EMAIL, // sender address
-    to: email, // list of receivers
-    subject: 'Welcome to DAM', // Subject line
+    to: user.email, // list of receivers
+    subject: 'Login detected', // Subject line
     text: 'Hello world?', // plain text body
-    html: mail // html body
+    html: emailBody // html body
   }
 
   // send mail with defined transport object
   transporter.sendMail(mailOptions, (error, info) => {
-    if (error) return console.log(error)
-    console.log('Message sent: %s', info.messageId)
-    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
+    if (error) throw error
+    // console.log('Message sent: %s', info.messageId)
+    // console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info))
   })
 }

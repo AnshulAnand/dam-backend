@@ -1,12 +1,12 @@
 import { Schema, model, Document, Types } from 'mongoose'
 
 export interface NewsletterDocument extends Document {
-  user: Types.ObjectId
+  email: string
 }
 
 const newsletterSchema = new Schema<NewsletterDocument>(
   {
-    user: { type: Schema.Types.ObjectId, required: true, ref: 'User' }
+    email: { type: String, required: true }
   },
   { timestamps: true }
 )
