@@ -80,14 +80,14 @@ const likeComment = asyncHandler(async (req: Request, res: Response) => {
   const liked = await LikeModel.findOne({
     _id: commentId,
     parentArticle: parentArticle
-  })
+  }).lean()
 
   if (liked) {
-    res.json({ message: 'You have already liked this comment' })
+    res.status(400).json({ message: 'You have already liked this comment' })
     return
   }
 
-  const comment = await CommentModel.findById(commentId).exec()
+  const comment = await CommentModel.findById(commentId)
 
   if (!comment) {
     res.status(400).json({ message: 'Comment Not Found' })
@@ -125,11 +125,11 @@ const postComment = asyncHandler(
       await ArticleModel.findByIdAndUpdate(comment.parentArticle, {
         $inc: { comments: 1 }
       }).exec()
-      res.status(201)
-      res.json({ message: 'Comment added successfully' })
+      res.status(201).json({ message: 'Comment added successfully' })
     } else {
-      res.status(400)
-      res.json({ message: 'Invalid data received, could not create comment' })
+      res
+        .status(400)
+        .json({ message: 'Invalid data received, could not create comment' })
     }
   }
 )

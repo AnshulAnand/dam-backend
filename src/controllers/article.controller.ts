@@ -81,7 +81,6 @@ const getArticleById = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 const checkLikeArticle = asyncHandler(async (req: Request, res: Response) => {
   const { articleId } = req.params
-  console.log({ articleId })
 
   const liked = await LikeModel.exists({
     user: req.userId,
@@ -100,10 +99,10 @@ const likeArticle = asyncHandler(async (req: Request, res: Response) => {
   const liked = await LikeModel.findOne({
     user: req.userId,
     article: articleId
-  })
+  }).lean()
 
   if (liked) {
-    res.json({ message: 'You have already liked this article' })
+    res.status(400).json({ message: 'You have already liked this article' })
     return
   }
 
@@ -142,6 +141,7 @@ const createArticle = asyncHandler(
     }
 
     user.articles += 1
+    await user.save()
 
     if (!title || !body) {
       res.status(400).json({ message: 'All fields are required' })
@@ -153,33 +153,20 @@ const createArticle = asyncHandler(
     const url =
       title.replace(/[^a-z\d\s]+/gi, '').replace(/ /g, '-') + '-' + nanoId()
 
-    interface ArticleObject {
-      user: string
-      title: string
-      url: string
-      tags?: Array<string>
-      description?: string
-      body: string
-      image?: string
-    }
-
-    const articleObject: ArticleObject = {
+    const articleObject = {
       user: user.id,
       title,
       tags,
       url,
       description,
-      body
+      body,
+      image
     }
-
-    if (image) articleObject.image = image
 
     const newArticle = await ArticleModel.create(articleObject)
 
-    await user.save()
-
     if (newArticle) {
-      res.status(201).json({ message: newArticle })
+      res.status(201).json(newArticle)
     } else {
       res
         .status(400)
@@ -214,9 +201,9 @@ const updateArticle = asyncHandler(
     if (image) article.image = image
     if (article.edited === false) article.edited = true
 
-    await article.save()
+    const updatedArticle = await article.save()
 
-    res.json({ message: 'Post updated successfully' })
+    res.json(updatedArticle)
   }
 )
 

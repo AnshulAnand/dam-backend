@@ -20,7 +20,7 @@ const articleSchema = new Schema<ArticleDocument>(
     title: { type: String, required: true },
     url: { type: String, required: true, unique: true },
     tags: [{ type: String }],
-    description: { type: String },
+    description: { type: String, default: '' },
     body: { type: String, required: true },
     image: { type: String, default: '' },
     views: { type: Number, default: 0 },

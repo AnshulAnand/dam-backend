@@ -10,9 +10,16 @@ import jwt from 'jsonwebtoken'
 import { Request, Response } from 'express'
 import asyncHandler from 'express-async-handler'
 import UserModel from '../models/user.model'
-import BasicAuthModel from '../models/auth/basicAuth.model'
+import OtpModel from '../models/otp.model'
 import NewsletterModel from '../models/newsletter.model'
-import { sendRegisterEmail, sendLoginEmail } from '../utils/sendEmail'
+import {
+  sendRegisterEmail,
+  sendLoginEmail,
+  sendOtpEmail,
+  sendPasswordChangeEmail
+} from '../utils/sendEmail'
+import AddMinutesToDate from '../utils/addTimeToDate'
+import otpGenerator from 'otp-generator'
 const nanoid = import('nanoid')
 import qs from 'qs'
 
@@ -37,7 +44,7 @@ export const getCurrentUser = asyncHandler(
     if (!user) {
       res.status(400).json({ message: 'No User Found' })
     } else {
-      res.json({ user })
+      res.json(user)
     }
   }
 )
@@ -54,7 +61,7 @@ export const getUserByUsername = asyncHandler(
     if (!user) {
       res.status(400).json({ message: 'No User Found' })
     } else {
-      res.json({ user })
+      res.json(user)
     }
   }
 )
@@ -65,11 +72,10 @@ export const getUserByUsername = asyncHandler(
 export const getUserById = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params
   const user = await UserModel.findById(userId).select('-password').lean()
-  console.log({ user })
   if (!user) {
     res.status(400).json({ message: 'No User Found' })
   } else {
-    res.json({ user })
+    res.json(user)
   }
 })
 
@@ -104,16 +110,9 @@ export const registerUser = asyncHandler(
       config.get<number>('saltWorkFactor')
     )
 
-    const userObject = { name, username, email }
+    const userObject = { name, username, email, password: hashedPassword }
 
     const newUser = await UserModel.create(userObject)
-
-    const basicAuthObject = {
-      password: hashedPassword,
-      user: newUser._id
-    }
-
-    const newBasicAuth = await BasicAuthModel.create(basicAuthObject)
 
     await NewsletterModel.create({ email })
 
@@ -123,22 +122,23 @@ export const registerUser = asyncHandler(
       { expiresIn: config.get<string>('jwtTtl') }
     )
 
-    if (newUser && newBasicAuth) {
-      res.cookie('jwt', JWT, {
+    if (!newUser) {
+      res
+        .status(400)
+        .json({ message: 'Invalid user data received, could not create user' })
+      return
+    }
+
+    res
+      .cookie('jwt', JWT, {
         httpOnly: true,
         sameSite: 'none',
         secure: true,
         maxAge: 24 * 60 * 60 * 1000
       })
+      .json({ message: 'Registered Successfully' })
 
-      res.json({ message: 'Registered Successfully' })
-
-      sendRegisterEmail(newUser)
-    } else {
-      res
-        .status(400)
-        .json({ message: 'Invalid user data received, could not create user' })
-    }
+    sendRegisterEmail(newUser)
   }
 )
 
@@ -156,36 +156,32 @@ export const loginUser = asyncHandler(
 
     const user = await UserModel.findOne({ email })
 
-    if (user) {
-      const basicAuth = await BasicAuthModel.findById(user._id)
+    if (!user) {
+      res.status(401).json({ message: 'No user found' })
+      return
+    }
 
-      const comparePasswords = await bcrypt.compare(
-        password,
-        basicAuth.password
-      )
+    const comparePasswords = await bcrypt.compare(password, user.password)
 
-      if (!comparePasswords) {
-        res.status(401).json({ message: 'Incorrect email or password' })
-        return
-      }
+    if (!comparePasswords) {
+      res.status(401).json({ message: 'Incorrect email or password' })
+      return
+    }
 
-      const JWT = jwt.sign(
-        { userId: user._id },
-        config.get<string>('jwtSecret'),
-        { expiresIn: config.get<string>('jwtTtl') }
-      )
+    const JWT = jwt.sign(
+      { userId: user._id },
+      config.get<string>('jwtSecret'),
+      { expiresIn: config.get<string>('jwtTtl') }
+    )
 
-      res.cookie('jwt', JWT, {
+    res
+      .cookie('jwt', JWT, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000
       })
+      .json({ message: 'Logged in successfully' })
 
-      res.json({ message: 'Logged in successfully' })
-
-      sendLoginEmail(user)
-    } else {
-      res.status(401).json({ message: 'No user found' })
-    }
+    sendLoginEmail(user)
   }
 )
 
@@ -227,10 +223,17 @@ export const googleOAuthRegister = asyncHandler(
         { expiresIn: config.get<string>('jwtTtl') }
       )
 
+      // res.cookie('jwt', JWT, {
+      //   httpOnly: true,
+      //   sameSite: 'none',
+      //   secure: true,
+      //   maxAge: 24 * 60 * 60 * 1000
+      // })
+
       res.cookie('jwt', JWT, {
         httpOnly: true,
-        // sameSite: 'none',
-        // secure: true,
+        sameSite: 'none',
+        secure: true,
         maxAge: 24 * 60 * 60 * 1000
       })
 
@@ -256,7 +259,12 @@ export const googleOAuthRegister = asyncHandler(
 
     const newUser = await UserModel.create(userObject)
 
-    await NewsletterModel.create({ email: user.email })
+    if (!newUser) {
+      res
+        .status(400)
+        .json({ message: 'Invalid user data received, could not create user' })
+      return
+    }
 
     const JWT = jwt.sign(
       { userId: newUser._id },
@@ -264,22 +272,18 @@ export const googleOAuthRegister = asyncHandler(
       { expiresIn: config.get<string>('jwtTtl') }
     )
 
-    if (newUser) {
-      res.cookie('jwt', JWT, {
+    await NewsletterModel.create({ email: user.email })
+
+    res
+      .cookie('jwt', JWT, {
         httpOnly: true,
         sameSite: 'none',
         secure: true,
         maxAge: 24 * 60 * 60 * 1000
       })
+      .redirect(config.get<string>('clientUrl'))
 
-      res.redirect(config.get<string>('clientUrl'))
-
-      sendRegisterEmail(newUser)
-    } else {
-      res.status(400).json({
-        message: 'Invalid user data received, could not create user'
-      })
-    }
+    sendRegisterEmail(newUser)
   }
 )
 
@@ -309,9 +313,90 @@ export const logoutUser = asyncHandler(async (req: Request, res: Response) => {
     return
   }
 
-  res.clearCookie('jwt', { httpOnly: true })
-  res.sendStatus(204)
+  res.clearCookie('jwt', { httpOnly: true }).sendStatus(204)
 })
+
+// @desc   Forgot password
+// @route  POST /users/forgot-password
+// @access Public
+export const forgotPassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body
+
+    const user = await UserModel.findOne({ email }).lean()
+
+    if (!user) {
+      res.status(400).json({ message: 'User not found' })
+      return
+    }
+
+    //Generate OTP
+    const otp = otpGenerator.generate(6, {
+      digits: true,
+      upperCaseAlphabets: true,
+      lowerCaseAlphabets: false,
+      specialChars: false
+    })
+
+    const now = new Date()
+
+    const expire = AddMinutesToDate(now, 10)
+
+    await OtpModel.create({ otp, expire })
+
+    sendOtpEmail(user, otp)
+
+    res.json({ message: 'OTP sent on your email' })
+  }
+)
+
+// @desc   Change password
+// @route  POST /users/change-password
+// @access Public
+export const changePassword = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, otp, password } = req.body
+
+    const user = await UserModel.findOne({ email })
+
+    if (!user) {
+      res.status(400).json({ message: 'User not found' })
+      return
+    }
+
+    const stored_otp = await OtpModel.findOne({ otp })
+
+    if (
+      stored_otp.verified ||
+      stored_otp.expire.getTime() <= new Date().getTime()
+    ) {
+      res.json({ message: 'OTP is already used' })
+      return
+    }
+
+    if (stored_otp.otp !== otp) {
+      res.status(400).json({ message: 'OTP did not match' })
+      return
+    }
+
+    stored_otp.verified = true
+
+    await stored_otp.save()
+
+    const encryptedNewPassword = await bcrypt.hash(
+      password,
+      config.get<number>('saltWorkFactor')
+    )
+
+    user.password = encryptedNewPassword
+
+    await user.save()
+
+    res.json({ message: 'Password changed' })
+
+    sendPasswordChangeEmail(user)
+  }
+)
 
 // @desc   Update user
 // @route  PATCH /users

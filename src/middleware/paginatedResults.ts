@@ -9,14 +9,12 @@ declare global {
   }
 }
 
-function paginatedResults(model) {
+export default function paginatedResults(model) {
   return asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const page = parseInt(req.query.page as string)
       const limit = parseInt(req.query.limit as string)
-
       const startIndex = (page - 1) * limit
-      const lastIndex = page * limit
 
       const results = await model
         .find()
@@ -30,5 +28,3 @@ function paginatedResults(model) {
     }
   )
 }
-
-export default paginatedResults

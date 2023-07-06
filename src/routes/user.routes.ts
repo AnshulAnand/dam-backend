@@ -12,7 +12,9 @@ import {
   logoutUser,
   getCurrentUser,
   getUserByUsername,
-  getUserById
+  getUserById,
+  forgotPassword,
+  changePassword
 } from '../controllers/user.controller'
 import validate from '../middleware/validateResource'
 import verifyJwt from '../middleware/verifyJwt'
@@ -29,6 +31,8 @@ router
   .get('/oauth/google', googleOAuthRegister)
   .post('/register', validate(createUserSchema), registerUser)
   .post('/login', validate(loginUserSchema), loginUser)
+  .post('/forgot-password', forgotPassword)
+  .post('/change-password', changePassword)
   .get('/logout', verifyJwt, logoutUser)
   .get('/current', verifyJwt, getCurrentUser)
   .get('/username/:username', getUserByUsername)

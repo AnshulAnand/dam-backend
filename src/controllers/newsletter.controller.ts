@@ -19,7 +19,7 @@ const subscribeNewsletter = asyncHanlder(
 
     await NewsletterModel.create({ email })
 
-    res.json({ message: 'You are subscribed to our newsletter' })
+    res.json({ message: 'You are now subscribed to our newsletter' })
   }
 )
 

@@ -55,7 +55,7 @@ const likeReply = asyncHandler(async (req: Request, res: Response) => {
   const liked = await LikeModel.findOne({ _id: replyId, parentComment })
 
   if (liked) {
-    res.json({ message: 'You have already liked this reply' })
+    res.status(400).json({ message: 'You have already liked this reply' })
     return
   }
 
@@ -98,7 +98,7 @@ const postReply = asyncHandler(
         $inc: { replies: 1 }
       }).exec()
       res.status(201)
-      res.json({ message: 'Reply added successfully' })
+      res.json(reply)
     } else {
       res.status(400)
       res.json({ message: 'Invalid data received, could not create reply' })
