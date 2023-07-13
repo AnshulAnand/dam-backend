@@ -1,9 +1,16 @@
 import { object, string, TypeOf } from 'zod'
 
-export const newsletterSchema = object({
+export const subNewsletterSchema = object({
   body: object({
     email: string({ required_error: 'Email is required' })
   })
 })
 
-export type NewsletterSchema = TypeOf<typeof newsletterSchema>
+export const unsubNewsletterSchema = object({
+  body: object({
+    id: string({ required_error: 'Code is required' })
+  })
+})
+
+export type SubNewsletterSchema = TypeOf<typeof subNewsletterSchema>
+export type UnsubNewsletterSchema = TypeOf<typeof unsubNewsletterSchema>

@@ -37,7 +37,7 @@ export const sendRegisterEmail = (user: any) => {
 
 export const sendLoginEmail = (user: any) => {
   const emailBody = `
-  <h1>Dear ${user.name},</h1>
+  <p>Dear ${user.name},</p>
   <p></p>
   <p>A login was detected from ${user.email}</p>
   <p></p>
@@ -79,11 +79,13 @@ export const sendLoginEmail = (user: any) => {
 
 export const sendOtpEmail = (user: any, otp: string) => {
   const emailBody = `
-  <h1>Dear ${user.name},</h1>
+  <p>Dear ${user.name},</p>
   <p></p>
-  <p>The OTP for password change is</p>
-  <h2>${otp}</h2>
+  <p>The OTP for password change is:</p>
+  <h1>${otp}</h1>
   <p>It will expire in 10 minutes</p>
+  <p></p>
+  <p>Do not share this OTP with anyone</p>
   `
 
   // create reusable transporter object using the default SMTP transport
@@ -121,7 +123,7 @@ export const sendOtpEmail = (user: any, otp: string) => {
 
 export const sendPasswordChangeEmail = (user: any) => {
   const emailBody = `
-  <h1>Dear ${user.name},</h1>
+  <p>Dear ${user.name},</p>
   <p></p>
   <p>As per your request, your DAM account password has been changed, you may now login into your account and continue</p>
   <p></p>
