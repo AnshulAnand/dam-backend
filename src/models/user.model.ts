@@ -18,7 +18,7 @@ const userSchema = new Schema<UserDocument>(
     name: { type: String, default: '' },
     username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String },
     country: { type: String, default: '' },
     bio: { type: String, default: '' },
     link: { type: String, default: '' },

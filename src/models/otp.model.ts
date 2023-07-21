@@ -1,15 +1,15 @@
-import { Schema, model, Document } from 'mongoose'
+import { Schema, model, Document, Types } from 'mongoose'
 
 export interface OtpDocument extends Document {
+  user: Types.ObjectId
   otp: string
-  verified: boolean
   expire: Date
 }
 
 const otpSchema = new Schema<OtpDocument>(
   {
+    user: { type: Schema.Types.ObjectId, required: true, ref: 'User' },
     otp: { type: String, required: true, unique: true },
-    verified: { type: Boolean, required: true, default: false },
     expire: { type: Date, required: true }
   },
   { timestamps: true }

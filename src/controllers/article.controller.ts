@@ -151,7 +151,12 @@ const createArticle = asyncHandler(
     const nanoId = (await nanoid).customAlphabet('abcde0123456789', 5)
 
     const url =
-      title.replace(/[^a-z\d\s]+/gi, '').replace(/ /g, '-') + '-' + nanoId()
+      title
+        .trim()
+        .replace(/[^a-z\d\s]+/gi, '')
+        .replace(/ /g, '-') +
+      '-' +
+      nanoId()
 
     const articleObject = {
       user: user.id,

@@ -342,7 +342,7 @@ export const forgotPassword = asyncHandler(
 
     const expire = AddMinutesToDate(now, 10)
 
-    await OtpModel.create({ otp, expire })
+    await OtpModel.create({ otp, expire, user: user._id })
 
     sendOtpEmail(user, otp)
 
@@ -364,24 +364,18 @@ export const changePassword = asyncHandler(
       return
     }
 
-    const stored_otp = await OtpModel.findOne({ otp })
+    const stored_otp = await OtpModel.findOne({ otp, user: user._id })
 
     if (
-      stored_otp.verified ||
+      !stored_otp ||
+      stored_otp.otp !== otp ||
       stored_otp.expire.getTime() <= new Date().getTime()
     ) {
-      res.json({ message: 'OTP is already used' })
+      res.status(400).json({ message: 'Invalid or expired OTP' })
       return
     }
 
-    if (stored_otp.otp !== otp) {
-      res.status(400).json({ message: 'OTP did not match' })
-      return
-    }
-
-    stored_otp.verified = true
-
-    await stored_otp.save()
+    await stored_otp.deleteOne()
 
     const encryptedNewPassword = await bcrypt.hash(
       password,
