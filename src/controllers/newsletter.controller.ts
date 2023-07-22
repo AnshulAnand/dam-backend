@@ -27,14 +27,11 @@ const subscribeNewsletter = asyncHanlder(
 )
 
 // @desc   Unsubscribe newsletter
-// @route  DELETE /newsletter
+// @route  DELETE /newsletter/:id
 // @access Private
 const unSubscribeNewsletter = asyncHanlder(
-  async (
-    req: Request<{}, {}, UnsubNewsletterSchema['body']>,
-    res: Response
-  ) => {
-    const { id } = req.body
+  async (req: Request, res: Response) => {
+    const { id } = req.params
 
     const newsletter = await NewsletterModel.findByIdAndDelete(id)
 
